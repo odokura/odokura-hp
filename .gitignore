@@ -2,17 +2,5 @@
 .DS_Store
 Thumbs.db
 
-# Docusaurus workspace
-website/node_modules/
-website/build/
-website/.docusaurus/
-website/.cache-loader/
-
-# Local env / logs
-website/.env.local
-website/.env.development.local
-website/.env.test.local
-website/.env.production.local
-website/npm-debug.log*
-website/yarn-debug.log*
-website/yarn-error.log*
+# Local Docusaurus workspace (do not publish source workspace)
+website/
