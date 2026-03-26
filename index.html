@@ -12,13 +12,14 @@
 </head>
 <body>
 
-  <!-- MENU OVERLAY -->
   <div class="overlay" id="overlay">
     <div class="overlay-inner">
       <nav class="overlay-nav">
-        <a href="#work" onclick="closeMenu()"><span class="nav-index">—</span>WORK</a>
-        <a href="#info" onclick="closeMenu()"><span class="nav-index">—</span>INFO</a>
-        <a href="mailto:info@odokura.jp" onclick="closeMenu()"><span class="nav-index">—</span>CONTACT</a>
+        <a href="#work" onclick="closeMenu()"><span class="nav-index">01/</span>WORK</a>
+        <a href="#info" onclick="closeMenu()"><span class="nav-index">02/</span>INFO</a>
+        <a href="#apps" onclick="closeMenu()"><span class="nav-index">03/</span>APPS</a>
+        <a href="privacy.html"><span class="nav-index">04/</span>COMPANY POLICY</a>
+        <a href="mailto:info@odokura.jp" onclick="closeMenu()"><span class="nav-index">05/</span>CONTACT</a>
       </nav>
       <div class="overlay-foot">
         <span>合同会社オドクラ</span>
@@ -27,7 +28,6 @@
     </div>
   </div>
 
-  <!-- HEADER -->
   <header class="header">
     <a href="#" class="header-logo">ODOKURA</a>
     <button class="menu-trigger" id="menuTrigger" aria-label="menu">
@@ -35,13 +35,12 @@
     </button>
   </header>
 
-  <!-- HERO -->
   <section class="hero">
     <div class="hero-bg-text" aria-hidden="true">SOFTWARE</div>
     <div class="hero-content">
       <div class="hero-top">
-        <p class="hero-tag">合同会社オドクラ — LLC</p>
-        <p class="hero-tag">大阪 / OSAKA — <span id="year"></span></p>
+        <p class="hero-tag">合同会社オドクラ &mdash; LLC</p>
+        <p class="hero-tag">大阪 / OSAKA &mdash; <span id="year"></span></p>
       </div>
       <div class="hero-main">
         <h1 class="hero-title">
@@ -55,11 +54,10 @@
       <span>0 0 1</span>
     </div>
     <div class="hero-counter" aria-hidden="true">
-      <span>— 001</span>
+      <span>&mdash; 001</span>
     </div>
   </section>
 
-  <!-- WORK -->
   <section class="work" id="work">
     <div class="work-label">
       <span>DISCIPLINE</span>
@@ -111,7 +109,7 @@
       </div>
     </div>
   </section>
-  <!-- INFO -->
+
   <section class="info" id="info">
     <div class="info-grid">
       <div class="info-col info-col--label">
@@ -146,25 +144,47 @@
     </div>
   </section>
 
-  <!-- FOOTER -->
+  <section class="apps-directory" id="apps">
+    <div class="work-label">
+      <span>APPLICATIONS</span>
+    </div>
+    <div class="apps-directory-inner">
+      <a class="app-card" href="apps/hatsugo-note/index.html">
+        <span class="app-card-label">APP</span>
+        <strong>発語ノート / HATSUGO NOTE</strong>
+        <p>子どもの発語記録、動画、設定、バックアップを端末内中心で管理するアプリです。</p>
+      </a>
+      <a class="app-card" href="apps/hatsugo-note/privacy.html">
+        <span class="app-card-label">LEGAL</span>
+        <strong>発語ノート プライバシーポリシー</strong>
+        <p>アプリ固有のプライバシー情報、共有、課金、権限利用についてご案内します。</p>
+      </a>
+      <a class="app-card" href="apps/hatsugo-note/terms.html">
+        <span class="app-card-label">LEGAL</span>
+        <strong>発語ノート 利用規約</strong>
+        <p>利用条件、Premium 機能、バックアップ管理、免責事項をまとめています。</p>
+      </a>
+    </div>
+  </section>
+
   <footer class="footer">
     <div class="footer-left">
       <span class="footer-logo">ODOKURA</span>
       <span class="footer-copy">© <span id="yearFoot"></span></span>
     </div>
     <div class="footer-right">
+      <a href="privacy.html" class="footer-link">COMPANY POLICY</a>
+      <a href="apps/hatsugo-note/index.html" class="footer-link">HATSUGO NOTE</a>
       <span>合同会社オドクラ</span>
       <span>ALL RIGHTS RESERVED</span>
     </div>
   </footer>
 
   <script>
-    // Year
     const y = new Date().getFullYear();
     document.getElementById('year').textContent = y;
     document.getElementById('yearFoot').textContent = y;
 
-    // Menu
     const overlay = document.getElementById('overlay');
     const trigger = document.getElementById('menuTrigger');
     const label = document.getElementById('menuLabel');
@@ -184,7 +204,6 @@
       label.textContent = 'INDEX';
     }
 
-    // Work accordion
     function toggleWork(id) {
       const item = document.getElementById(id);
       const isOpen = item.classList.contains('open');
@@ -192,11 +211,13 @@
       if (!isOpen) item.classList.add('open');
     }
 
-    // Smooth scroll
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
         const t = document.querySelector(a.getAttribute('href'));
-        if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
+        if (t) {
+          e.preventDefault();
+          t.scrollIntoView({ behavior: 'smooth' });
+        }
       });
     });
   </script>

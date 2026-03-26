@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>発語ノート | ODOKURA</title>
+  <meta name="description" content="発語ノートのアプリ情報、プライバシーポリシー、利用規約への案内ページです。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Serif+JP:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../style.css">
+</head>
+<body class="subpage">
+  <header class="subpage-header">
+    <a href="../../index.html" class="header-logo header-logo--dark">ODOKURA</a>
+    <a href="../../index.html" class="subpage-back">BACK TO HOME</a>
+  </header>
+
+  <main>
+    <section class="policy-hero">
+      <p class="policy-eyebrow">APP DIRECTORY</p>
+      <h1 class="policy-title">発語ノート<br><span>HATSUGO NOTE</span></h1>
+      <p class="policy-lead">
+        発語ノートは、お子さまの発語記録、動画、成長の記録を端末内中心で管理するアプリです。
+        本ページでは、アプリに関する法務文書と公開情報をまとめています。
+      </p>
+      <p class="policy-meta">Documents for App Store / Google Play / in-app display</p>
+    </section>
+
+    <section class="policy-content">
+      <div class="policy-layout">
+        <aside class="policy-side">
+          <span>APP</span>
+        </aside>
+
+        <div class="policy-main">
+          <section class="policy-section">
+            <h2>公開ページ</h2>
+            <div class="app-card-list">
+              <a class="app-card" href="privacy.html">
+                <span class="app-card-label">LEGAL</span>
+                <strong>プライバシーポリシー</strong>
+                <p>発語記録、動画、バックアップ、課金、共有、権限利用の取り扱いを案内します。</p>
+              </a>
+              <a class="app-card" href="terms.html">
+                <span class="app-card-label">LEGAL</span>
+                <strong>利用規約</strong>
+                <p>アプリ利用条件、Premium 機能、バックアップ管理、免責などを案内します。</p>
+              </a>
+            </div>
+          </section>
+
+          <section class="policy-section">
+            <h2>アプリ概要</h2>
+            <ul class="policy-list">
+              <li>子どもの発語記録を、単語・日付・発語状態で管理</li>
+              <li>発語シーンの動画保存と再生に対応</li>
+              <li>名前、性別、生年月日、写真、言語設定を管理</li>
+              <li>Premium で動画保存拡張と暗号化バックアップに対応</li>
+              <li>主な保存先は端末内で、常時クラウド同期を前提としない構成</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <span class="footer-logo">HATSUGO NOTE</span>
+      <span class="footer-copy">© <span id="yearFoot"></span></span>
+    </div>
+    <div class="footer-right">
+      <a href="../../privacy.html" class="footer-link">COMPANY POLICY</a>
+      <span>ALL RIGHTS RESERVED</span>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('yearFoot').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
