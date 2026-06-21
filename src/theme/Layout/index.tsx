@@ -1,0 +1,57 @@
+import React, {type ReactNode} from 'react';
+import clsx from 'clsx';
+import ErrorBoundary from '@docusaurus/ErrorBoundary';
+import {
+  PageMetadata,
+  SkipToContentFallbackId,
+  ThemeClassNames,
+} from '@docusaurus/theme-common';
+import SkipToContent from '@theme/SkipToContent';
+import AnnouncementBar from '@theme/AnnouncementBar';
+import Navbar from '@theme/Navbar';
+import Footer from '@theme/Footer';
+import LayoutProvider from '@theme/Layout/Provider';
+import ErrorPageContent from '@theme/ErrorPageContent';
+import type {Props as BaseProps} from '@theme/Layout';
+import styles from '@theme-original/Layout/styles.module.css';
+
+type Props = BaseProps & {
+  noNavbar?: boolean;
+};
+
+export default function Layout(props: Props): ReactNode {
+  const {
+    children,
+    noFooter,
+    noNavbar,
+    wrapperClassName,
+    title,
+    description,
+  } = props;
+
+  return (
+    <LayoutProvider>
+      <PageMetadata title={title} description={description} />
+
+      <SkipToContent />
+
+      <AnnouncementBar />
+
+      {!noNavbar && <Navbar />}
+      <div
+        id={SkipToContentFallbackId}
+        className={clsx(
+          ThemeClassNames.layout.main.container,
+          ThemeClassNames.wrapper.main,
+          styles.mainWrapper,
+          wrapperClassName,
+        )}>
+        <ErrorBoundary fallback={(params) => <ErrorPageContent {...params} />}>
+          {children}
+        </ErrorBoundary>
+      </div>
+
+      {!noFooter && <Footer />}
+    </LayoutProvider>
+  );
+}
