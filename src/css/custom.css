@@ -1,0 +1,121 @@
+:root {
+  /* ── Primary (accent blue) ── */
+  --ifm-color-primary: #2563eb;
+  --ifm-color-primary-dark: #1d4ed8;
+  --ifm-color-primary-darker: #1e40af;
+  --ifm-color-primary-darkest: #1e3a8a;
+  --ifm-color-primary-light: #3b82f6;
+  --ifm-color-primary-lighter: #60a5fa;
+  --ifm-color-primary-lightest: #93c5fd;
+
+  /* ── Base ── */
+  --ifm-background-color: #ffffff;
+  --ifm-font-color-base: #0f172a;
+  --ifm-heading-color: #0a0f1e;
+  --ifm-link-color: #2563eb;
+  --ifm-link-hover-color: #1d4ed8;
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'BIZ UDPGothic', Meiryo,
+    sans-serif;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
+
+  /* ── Navbar ── */
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-navbar-link-color: #1e293b;
+  --ifm-navbar-link-hover-color: #2563eb;
+  --ifm-navbar-shadow: 0 1px 0 #e2e8f0;
+
+  /* ── Footer ── */
+  --ifm-footer-background-color: #0a0f1e;
+}
+
+/* ── Navbar ── */
+.navbar {
+  box-shadow: 0 1px 0 #e2e8f0;
+  backdrop-filter: none;
+}
+
+.navbar__title {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0a0f1e;
+}
+
+.navbar__link {
+  font-weight: 500;
+}
+
+.navbar__link--active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+/* ── Footer ── */
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.footer__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.footer__link-item {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.9rem;
+  transition: color 0.15s;
+}
+
+.footer__link-item:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.footer__copyright {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.82rem;
+}
+
+/* ── Docs pages ── */
+.theme-doc-markdown h1 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0a0f1e;
+}
+
+.theme-doc-markdown h2,
+.theme-doc-markdown h3 {
+  letter-spacing: -0.025em;
+  color: #0a0f1e;
+}
+
+.theme-doc-markdown table {
+  display: table;
+  width: 100%;
+}
+
+.theme-doc-markdown table th {
+  white-space: nowrap;
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 600;
+}
+
+.theme-doc-markdown code {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+  font-size: 0.88em;
+  color: #0f172a;
+}
+
+/* ── Sidebar ── */
+.theme-doc-sidebar-item-link-level-1 > a {
+  font-weight: 600;
+}
