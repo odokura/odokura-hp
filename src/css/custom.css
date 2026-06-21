@@ -30,6 +30,12 @@
   --ifm-footer-background-color: #0a0f1e;
 }
 
+@property --ripple-r {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
 /* ── Navbar ── */
 .navbar {
   box-shadow: 0 1px 0 #e2e8f0;

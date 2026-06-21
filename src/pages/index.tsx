@@ -3,57 +3,54 @@ import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
 
-function HomeFrame(): ReactNode {
-  return (
-    <section className={styles.page}>
-      <div className={styles.frame}>
-        <div className={styles.frameBar}>
-          <span className={styles.meta}>ODOKURA</span>
-          <span className={styles.meta}>MONOCHROME FRAME / 2026</span>
-        </div>
-
-        <div className={styles.stage}>
-          <div className={styles.stageOuter}>
-            <div className={styles.stageInner}>
-              <span className={styles.stageLabel}>ARTWORK COMING LATER</span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.copyBlock}>
-          <p className={styles.kicker}>Mobile application by ODOKURA LLC</p>
-          <h1 className={styles.title}>Hatsu-go</h1>
-          <p className={styles.statement}>first words, quietly kept.</p>
-        </div>
-
-        <nav className={styles.linkRail} aria-label="Primary">
-          <Link className={styles.railLink} to="/docs/apps/hatsugo-note/overview">
-            App overview
-          </Link>
-          <Link className={styles.railLink} to="/docs/company/overview">
-            Company
-          </Link>
-          <a className={styles.railLink} href="mailto:info@odokura.jp">
-            Contact
-          </a>
-        </nav>
-      </div>
-    </section>
-  );
-}
+const additionalLinks = [
+  {
+    label: 'App overview',
+    to: '/docs/apps/hatsugo-note/overview',
+  },
+  {
+    label: 'Company',
+    to: '/docs/company/overview',
+  },
+  {
+    label: 'Contact',
+    href: 'mailto:info@odokura.jp',
+  },
+] as const;
 
 export default function Home(): ReactNode {
-  const layoutProps = {
-    title: 'ODOKURA — Hatsu-go',
-    description: 'ODOKURA LLC / Hatsu-go',
-    noNavbar: true,
-    noFooter: true,
-  } as const;
-
   return (
-    <Layout {...(layoutProps as never)}>
+    <Layout title="ODOKURA" description="ODOKURA LLC / Hatsu-go" noFooter>
       <main>
-        <HomeFrame />
+        <section className={`${styles.page} homepage-minimal-root`}>
+          <div className={styles.frame}>
+            <div className={styles.frameBar}>
+              <span className={styles.meta}>ODOKURA</span>
+              <span className={styles.frameMark}>
+                <span className={styles.edition}>MMXXVI / 01</span>
+                <span className={styles.seal} aria-hidden="true" />
+              </span>
+            </div>
+            <div className={styles.stage}>
+              <div className={styles.stageOuter}>
+                <div className={styles.stageInner} />
+              </div>
+            </div>
+            <nav className={styles.linkRail} aria-label="Primary">
+              {additionalLinks.map((item) =>
+                'to' in item ? (
+                  <Link key={item.label} className={styles.railLink} to={item.to}>
+                    {item.label}
+                  </Link>
+                ) : (
+                  <a key={item.label} className={styles.railLink} href={item.href}>
+                    {item.label}
+                  </a>
+                ),
+              )}
+            </nav>
+          </div>
+        </section>
       </main>
     </Layout>
   );

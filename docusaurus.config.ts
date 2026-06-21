@@ -4,7 +4,7 @@ import type {Options, ThemeConfig} from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'ODOKURA',
   tagline: 'モバイルアプリケーション・ソフトウェア開発',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.svg',
 
   url: 'https://www.odokura.com',
   baseUrl: '/',
@@ -38,7 +38,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           routeBasePath: 'docs',
-          include: ['company/**/*.md', 'apps/**/*.md'],
+          include: ['company/**/*.md', 'apps/**/*.md', 'spec/**/*.md'],
         },
         blog: false,
         theme: {
@@ -62,16 +62,6 @@ const config: Config = {
         src: 'img/logo.svg',
       },
       items: [
-        {
-          to: '/docs/company/overview',
-          label: '会社情報',
-          position: 'left',
-        },
-        {
-          to: '/docs/apps/hatsugo-note/overview',
-          label: 'Hatsu-go',
-          position: 'left',
-        },
         {
           href: 'mailto:info@odokura.jp',
           label: 'お問い合わせ',

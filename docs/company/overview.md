@@ -13,7 +13,7 @@ ODOKURA は、モバイルアプリケーション開発およびソフトウェ
 - 事業者名: 合同会社オドクラ / ODOKURA LLC
 - お問い合わせ先: `info@odokura.jp`
 - 主な事業: モバイルアプリケーション開発、ソフトウェア開発
-- 提供アプリ: 発語ノート
+- 提供アプリ: Hatsu-go
 
 ## 当サイトについて
 
@@ -21,6 +21,6 @@ ODOKURA は、モバイルアプリケーション開発およびソフトウェ
 
 ## アプリに関する情報
 
-- [発語ノート](../apps/hatsugo-note/overview.md)
-- [発語ノート プライバシーポリシー](../apps/hatsugo-note/legal/privacy-policy.md)
-- [発語ノート 利用規約](../apps/hatsugo-note/legal/terms-of-service.md)
+- [Hatsu-go](../apps/hatsugo-note/overview.md)
+- [Hatsu-go プライバシーポリシー](../apps/hatsugo-note/legal/privacy-policy.md)
+- [Hatsu-go 利用規約](../apps/hatsugo-note/legal/terms-of-service.md)
