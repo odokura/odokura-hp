@@ -30,6 +30,15 @@
   --ifm-footer-background-color: #0a0f1e;
 }
 
+body.home-no-chrome .navbar,
+body.home-no-chrome .footer {
+  display: none;
+}
+
+body.home-no-chrome {
+  padding-top: 0;
+}
+
 /* ── Navbar ── */
 .navbar {
   box-shadow: 0 1px 0 #e2e8f0;
