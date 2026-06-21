@@ -1,5 +1,4 @@
 import type {ReactNode} from 'react';
-import {useEffect} from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
@@ -44,16 +43,15 @@ function HomeFrame(): ReactNode {
 }
 
 export default function Home(): ReactNode {
-  useEffect(() => {
-    document.body.classList.add('home-no-chrome');
-
-    return () => {
-      document.body.classList.remove('home-no-chrome');
-    };
-  }, []);
+  const layoutProps = {
+    title: 'ODOKURA — Hatsu-go',
+    description: 'ODOKURA LLC / Hatsu-go',
+    noNavbar: true,
+    noFooter: true,
+  } as const;
 
   return (
-    <Layout title="ODOKURA — Hatsu-go" description="ODOKURA LLC / Hatsu-go" noFooter>
+    <Layout {...(layoutProps as never)}>
       <main>
         <HomeFrame />
       </main>
