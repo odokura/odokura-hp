@@ -20,7 +20,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: '会社情報',
-      items: ['company/overview', 'company/privacy-policy'],
+      items: ['company/overview', 'company/privacy-policy', 'company/support'],
     },
     {
       type: 'category',

@@ -31,7 +31,8 @@ draft: true
 
 会社情報
 ├─ 会社概要
-└─ プライバシーポリシー
+├─ プライバシーポリシー
+└─ サポート
 
 仕様（dev 限定・draft）
 ├─ トップページ仕様
@@ -49,6 +50,7 @@ draft: true
 会社情報
 - company/overview
 - company/privacy-policy
+- company/support
 
 仕様
 - spec/hp-spec
@@ -60,6 +62,18 @@ draft: true
 1. アプリ
 2. 会社情報
 3. 仕様
+
+## サポートページ
+
+会社情報カテゴリには、全アプリ共通のサポート窓口ページを置く。これは Apple App Store の「サポートURL」欄に登録するための公開ページである。
+
+```text
+/docs/company/support
+```
+
+内容は ODOKURA の全アプリを対象にした汎用的なサポート案内とする。問い合わせ先メールは `info@odokura.jp` とし、問い合わせ時にはアプリ名、端末と OS、発生している事象を添えてもらう。
+
+特定アプリ固有の説明や注意事項は、このサポートページではなく各アプリのページに置く。
 
 ## ナビバー
 
