@@ -1,531 +1,175 @@
-/* ===== SHARED LAYOUT ===== */
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 2rem;
+.page {
+  min-height: calc(100vh - var(--ifm-navbar-height));
+  padding: 1.25rem;
+  background:
+    linear-gradient(180deg, #f7f6f2 0%, #efede7 100%);
 }
 
-.section {
-  padding: 6rem 0;
-  background: #ffffff;
+.frame {
+  min-height: calc(100vh - var(--ifm-navbar-height) - 2.5rem);
+  border: 1px solid #111111;
+  background: rgba(255, 255, 255, 0.68);
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
 }
 
-.sectionAlt {
-  padding: 6rem 0;
-  background: #f8fafc;
-}
-
-.sectionHeader {
+.frameBar {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 3rem;
-}
-
-.sectionLabel {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #2563eb;
-  margin: 0;
-}
-
-.sectionHeading {
-  font-size: clamp(1.75rem, 3vw, 2.4rem);
-  font-weight: 800;
-  color: #0a0f1e;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-  margin: 0;
-}
-
-/* ===== HERO ===== */
-.hero {
-  background: #0a0f1e;
-  min-height: 88vh;
-  display: flex;
-  align-items: center;
-  padding: 7rem 2rem 6rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero::before {
-  content: '';
-  position: absolute;
-  top: -20%;
-  right: -5%;
-  width: 55%;
-  height: 120%;
-  background: radial-gradient(ellipse at center, rgba(37, 99, 235, 0.15) 0%, transparent 65%);
-  pointer-events: none;
-}
-
-.hero::after {
-  content: '';
-  position: absolute;
-  bottom: -10%;
-  left: 10%;
-  width: 40%;
-  height: 70%;
-  background: radial-gradient(ellipse at center, rgba(37, 99, 235, 0.06) 0%, transparent 65%);
-  pointer-events: none;
-}
-
-.heroInner {
-  max-width: 820px;
-  position: relative;
-  z-index: 1;
-}
-
-.heroEyebrow {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 1.5rem;
-}
-
-.heroTitle {
-  font-size: clamp(2.4rem, 5.5vw, 4.4rem);
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.18;
-  letter-spacing: -0.03em;
-  margin-bottom: 1.75rem;
-}
-
-.heroLead {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.58);
-  line-height: 1.8;
-  margin-bottom: 2.75rem;
-  max-width: 460px;
-}
-
-.heroActions {
-  display: flex;
+  justify-content: space-between;
   gap: 1rem;
-  flex-wrap: wrap;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #111111;
 }
 
-/* ===== BUTTONS ===== */
-.btnPrimary {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.875rem 2rem;
-  background: #2563eb;
-  color: #ffffff !important;
-  font-weight: 700;
-  font-size: 0.95rem;
-  border-radius: 6px;
-  text-decoration: none !important;
-  transition: background 0.15s, transform 0.15s;
-  white-space: nowrap;
-}
-
-.btnPrimary:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-  color: #ffffff !important;
-}
-
-.btnGhost {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.875rem 2rem;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.78) !important;
-  font-weight: 600;
-  font-size: 0.95rem;
-  border-radius: 6px;
-  border: 1.5px solid rgba(255, 255, 255, 0.22);
-  text-decoration: none !important;
-  transition: border-color 0.15s, color 0.15s;
-  white-space: nowrap;
-}
-
-.btnGhost:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-  color: #ffffff !important;
-}
-
-.btnSecondary {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.75rem 1.5rem;
-  background: transparent;
-  color: #2563eb !important;
-  font-weight: 600;
-  font-size: 0.92rem;
-  border-radius: 6px;
-  border: 1.5px solid #2563eb;
-  text-decoration: none !important;
-  transition: background 0.15s, color 0.15s;
-  white-space: nowrap;
-  margin-top: 1.5rem;
-}
-
-.btnSecondary:hover {
-  background: #2563eb;
-  color: #ffffff !important;
-}
-
-/* ===== SERVICES ===== */
-.serviceGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.75rem;
-}
-
-.serviceCard {
-  padding: 2.25rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #ffffff;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-
-.serviceCard:hover {
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
-  transform: translateY(-2px);
-}
-
-.serviceCard::before {
-  content: '';
-  display: block;
-  width: 2.5rem;
-  height: 2px;
-  background: #2563eb;
-  margin-bottom: 1.5rem;
-  border-radius: 1px;
-}
-
-.serviceNum {
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: #94a3b8;
-  margin-bottom: 0.5rem;
-}
-
-.serviceCardSub {
+.meta {
+  font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
   font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #2563eb;
-  margin-bottom: 0.55rem;
+  color: #111111;
 }
 
-.serviceCardTitle {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: #0a0f1e;
-  letter-spacing: -0.025em;
-  margin: 0 0 0.85rem;
-}
-
-.serviceCardBody {
-  font-size: 0.94rem;
-  line-height: 1.85;
-  color: #64748b;
-  margin: 0;
-}
-
-/* ===== APP CARD ===== */
-.appCard {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3.5rem;
-  padding: 2.75rem 3rem;
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-}
-
-.appCardLeft {
+.stage {
+  padding: 1rem;
   display: flex;
-  flex-direction: column;
 }
 
-.appCardRight {
+.stageOuter {
+  flex: 1;
+  border: 1px solid #111111;
+  padding: 0.85rem;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  min-height: 52vh;
 }
 
-.appBadge {
-  display: inline-block;
-  font-size: 0.66rem;
-  font-weight: 700;
+.stageInner {
+  flex: 1;
+  border: 1px solid #111111;
+  background:
+    linear-gradient(135deg, rgba(17, 17, 17, 0.02) 25%, transparent 25%) -16px 0 / 32px 32px,
+    linear-gradient(225deg, rgba(17, 17, 17, 0.02) 25%, transparent 25%) -16px 0 / 32px 32px,
+    linear-gradient(315deg, rgba(17, 17, 17, 0.02) 25%, transparent 25%) 0 0 / 32px 32px,
+    linear-gradient(45deg, rgba(17, 17, 17, 0.02) 25%, transparent 25%) 0 0 / 32px 32px,
+    #f3f1eb;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 1rem;
+}
+
+.stageLabel {
+  font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #2563eb;
-  border: 1.5px solid #2563eb;
-  border-radius: 4px;
-  padding: 0.2rem 0.6rem;
-  margin-bottom: 1rem;
-  align-self: flex-start;
+  color: rgba(17, 17, 17, 0.7);
 }
 
-.appName {
-  font-size: clamp(1.75rem, 3vw, 2.4rem);
-  font-weight: 800;
-  color: #0a0f1e;
-  letter-spacing: -0.035em;
-  margin: 0 0 0.65rem;
-}
-
-.appTagline {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #334155;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-.appDesc {
-  font-size: 0.93rem;
-  line-height: 1.9;
-  color: #64748b;
-  margin-bottom: 1.75rem;
-}
-
-.appLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #2563eb !important;
-  text-decoration: none !important;
-  transition: gap 0.15s;
-  margin-top: auto;
-}
-
-.appLink::after {
-  content: '→';
-  display: inline-block;
-  transition: transform 0.15s;
-}
-
-.appLink:hover::after {
-  transform: translateX(4px);
-}
-
-.featureList {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.featureItem {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  font-size: 0.92rem;
-  color: #334155;
-  line-height: 1.5;
-}
-
-.featureDot {
-  flex-shrink: 0;
-  width: 6px;
-  height: 6px;
-  background: #2563eb;
-  border-radius: 50%;
-}
-
-.planRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-.planBadge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.9rem;
-  background: #f1f5f9;
-  border-radius: 6px;
-  font-size: 0.84rem;
-}
-
-.planBadge strong {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.planBadge span {
-  color: #64748b;
-  font-size: 0.8rem;
-}
-
-/* ===== COMPANY ===== */
-.companyWrap {
-  max-width: 620px;
-}
-
-.companyDl {
-  border-top: 1px solid #e2e8f0;
-  margin: 0;
-}
-
-.dlRow {
+.copyBlock {
   display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 1.5rem;
-  padding: 1.1rem 0;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 0.95rem;
+  gap: 0.5rem;
+  padding: 0 1rem 1rem;
+}
+
+.kicker {
   margin: 0;
-}
-
-.dlRow dt {
-  font-weight: 600;
-  color: #64748b;
-}
-
-.dlRow dd {
-  color: #0f172a;
-  margin: 0;
-}
-
-.mailLink {
-  color: #2563eb !important;
-  font-weight: 600;
-  text-decoration: none !important;
-}
-
-.mailLink:hover {
-  text-decoration: underline !important;
-}
-
-/* ===== CONTACT ===== */
-.contactSection {
-  background: #0a0f1e;
-  padding: 6rem 0;
-  text-align: center;
-}
-
-.contactLabel {
+  font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
   font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.3);
-  margin-bottom: 1rem;
+  color: rgba(17, 17, 17, 0.74);
 }
 
-.contactTitle {
-  font-size: clamp(1.75rem, 3vw, 2.4rem);
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.03em;
-  margin-bottom: 1rem;
+.title {
+  margin: 0;
+  font-family: 'Iowan Old Style', 'Yu Mincho', 'Hiragino Mincho ProN', Georgia, serif;
+  font-size: clamp(3.6rem, 9vw, 8rem);
+  line-height: 0.94;
+  font-weight: 600;
+  letter-spacing: -0.06em;
+  color: #111111;
 }
 
-.contactDesc {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.52);
-  line-height: 1.8;
-  margin: 0 auto 2.25rem;
-  max-width: 440px;
+.statement {
+  margin: 0;
+  font-family: 'Iowan Old Style', 'Yu Mincho', 'Hiragino Mincho ProN', Georgia, serif;
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  line-height: 1.5;
+  color: rgba(17, 17, 17, 0.76);
 }
 
-.btnContactPrimary {
-  display: inline-flex;
+.linkRail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid #111111;
+}
+
+.railLink {
+  display: flex;
   align-items: center;
-  padding: 0.95rem 2.5rem;
-  background: #2563eb;
-  color: #ffffff !important;
-  font-weight: 700;
-  font-size: 1rem;
-  border-radius: 6px;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: #111111 !important;
   text-decoration: none !important;
-  transition: background 0.15s, transform 0.15s;
+  border-right: 1px solid #111111;
+  font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.btnContactPrimary:hover {
-  background: #1d4ed8;
-  transform: translateY(-2px);
-  color: #ffffff !important;
+.railLink:last-child {
+  border-right: 0;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 900px) {
-  .appCard {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    padding: 2rem;
-  }
+.railLink::after {
+  content: '+';
+  font-size: 1rem;
+}
+
+.railLink:hover {
+  background: #111111;
+  color: #f7f6f2 !important;
 }
 
 @media (max-width: 768px) {
-  .section,
-  .sectionAlt {
-    padding: 4rem 0;
+  .page {
+    padding: 0.75rem;
   }
 
-  .hero {
-    min-height: 80vh;
-    padding: 6rem 1.5rem 4rem;
+  .frame {
+    min-height: calc(100vh - var(--ifm-navbar-height) - 1.5rem);
   }
 
-  .serviceGrid {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
-
-  .contactSection {
-    padding: 4rem 0;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 0 1.25rem;
-  }
-
-  .heroTitle {
-    font-size: 2.2rem;
-  }
-
-  .heroLead {
-    font-size: 1rem;
-  }
-
-  .heroActions {
+  .frameBar {
     flex-direction: column;
+    align-items: flex-start;
   }
 
-  .btnPrimary,
-  .btnGhost,
-  .btnContactPrimary {
-    width: 100%;
-    justify-content: center;
+  .stage {
+    padding: 0.75rem;
   }
 
-  .dlRow {
+  .stageOuter {
+    min-height: 42vh;
+    padding: 0.65rem;
+  }
+
+  .copyBlock {
+    padding: 0 0.75rem 0.75rem;
+  }
+
+  .linkRail {
     grid-template-columns: 1fr;
-    gap: 0.3rem;
   }
 
-  .dlRow dt {
-    font-size: 0.82rem;
-    padding-top: 0.85rem;
+  .railLink {
+    border-right: 0;
+    border-bottom: 1px solid #111111;
   }
 
-  .planRow {
-    flex-direction: column;
+  .railLink:last-child {
+    border-bottom: 0;
   }
 }
