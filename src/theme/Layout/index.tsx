@@ -13,7 +13,6 @@ import Footer from '@theme/Footer';
 import LayoutProvider from '@theme/Layout/Provider';
 import ErrorPageContent from '@theme/ErrorPageContent';
 import type {Props as BaseProps} from '@theme/Layout';
-import styles from '@theme-original/Layout/styles.module.css';
 
 type Props = BaseProps & {
   noNavbar?: boolean;
@@ -43,7 +42,6 @@ export default function Layout(props: Props): ReactNode {
         className={clsx(
           ThemeClassNames.layout.main.container,
           ThemeClassNames.wrapper.main,
-          styles.mainWrapper,
           wrapperClassName,
         )}>
         <ErrorBoundary fallback={(params) => <ErrorPageContent {...params} />}>
