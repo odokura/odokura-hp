@@ -69,7 +69,7 @@ const config: Config = {
         },
         {
           to: '/docs/apps/hatsugo-note/overview',
-          label: '発語ノート',
+          label: 'Hatsu-go',
           position: 'left',
         },
         {
@@ -99,15 +99,15 @@ const config: Config = {
           title: 'アプリ',
           items: [
             {
-              label: '発語ノート',
+              label: 'Hatsu-go',
               to: '/docs/apps/hatsugo-note/overview',
             },
             {
-              label: '発語ノート プライバシーポリシー',
+              label: 'Hatsu-go プライバシーポリシー',
               to: '/docs/apps/hatsugo-note/legal/privacy-policy',
             },
             {
-              label: '発語ノート 利用規約',
+              label: 'Hatsu-go 利用規約',
               to: '/docs/apps/hatsugo-note/legal/terms-of-service',
             },
           ],
