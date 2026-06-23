@@ -92,4 +92,4 @@ Hatsu-go is a recording app for that purpose.
 
 ## Operator Information
 
-- [Company Information](../../company/overview.md)
+- [Company Information](../../company/overview)

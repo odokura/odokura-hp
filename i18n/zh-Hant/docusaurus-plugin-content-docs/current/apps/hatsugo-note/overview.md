@@ -92,4 +92,4 @@ Hatsu-go 就是為了這件事而存在的記錄 App。
 
 ## 營運者資訊
 
-- [公司資訊](../../company/overview.md)
+- [公司資訊](../../company/overview)
