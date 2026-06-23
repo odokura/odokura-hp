@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx docusaurus *)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "PowerShell(npm run build 2>&1)",
+      "PowerShell(npm run build 2>&1 | Select-String -Pattern \"Error|broken|Can't|Cause|locale|\\\\.md\" | Select-Object -First 40 | ForEach-Object { $_.Line })"
     ]
   }
 }

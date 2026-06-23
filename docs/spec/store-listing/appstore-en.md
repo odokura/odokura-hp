@@ -1,17 +1,32 @@
-# Hatsu-go English App Store Listing
+---
+title: Hatsu-go ストア入力情報：App Store（英語）
+sidebar_label: App Store（英語）
+draft: true
+---
 
 ## App Name
-Hatsu-go
+
+```
+Hatsu-go: Toddler Speech Log
+```
 
 ## Subtitle
-Toddler Speech Log
+
+```
+Vocabulary & milestone tracker
+```
 
 ## Promotional Text
+
+```
 Track your toddler's first words, understanding, and little speech moments with notes, charts, and video memories you can revisit as they grow.
+```
 
 Character count: 146 / 170
 
 ## Description
+
+```
 Track their words, watch their world.
 
 Hatsu-go helps you record your child's growing vocabulary and understanding. Keep track of how your child begins to express themselves, what they understand, and how those small moments grow into lasting milestones.
@@ -35,15 +50,20 @@ Core parenting features like logging and charts are free and available without l
 Your child's precious speech records and videos are not uploaded to external servers. They are stored securely on your device. When you change devices, Premium helps you move your data safely with encrypted backup and transfer features.
 
 Hatsu-go is a recording and management tool for parents. It does not provide medical diagnosis, treatment, or professional advice, and it is not a substitute for professional evaluation. If you have concerns about your child's speech, hearing, or development, please consult a qualified professional such as a pediatrician or speech-language pathologist.
+```
 
 Character count: 2487 / 4000
 
 ## Keywords
-first words,baby talk,language delay,child development,milestones,parenting,communication,autism
 
-Character count: 97 / 100
+```
+first words,baby talk,language delay,special needs,early intervention,babble,parenting,kids
+```
+
+Character count: 91 / 100
 
 ## Notes
+
 - Keywords are comma-separated with no spaces to conserve the 100-character limit.
 - For ASO, avoid wasting characters on words already covered by `Title` and `Subtitle` unless there is a strong reason.
 - Promotional Text can be updated without submitting a new version, unlike Description.

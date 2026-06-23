@@ -1,12 +1,24 @@
-﻿# Hatsu-go English Store Listing
+---
+title: Hatsu-go ストア入力情報：Google Play（英語）
+sidebar_label: Google Play（英語）
+draft: true
+---
 
 ## Title
+
+```
 Hatsu-go: Toddler Speech Log
+```
 
 ## Short Description
+
+```
 See your toddler’s world through speech logs, early learning, and video memories.
+```
 
 ## Full Description
+
+```
 <b>Track their words, watch their world.</b>
 Hatsu-go is an app that helps you record your child’s growing vocabulary and how much they understand. It lets you keep track of how your child’s understanding grows and how the way they see the world changes.
 The joy and surprise of your baby’s first words. New words that keep growing. Funny little mistakes you can only hear right now. And a clear “Mama” or “Dada.”
@@ -37,17 +49,26 @@ When you change devices, the Premium feature lets you safely move your data with
 <b>Hatsu-go</b> is a management tool designed for parents to record their child’s speech development.
 This app does not provide medical diagnosis, professional advice, or treatment plans. It is not a substitute for professional evaluation.
 If you have any concerns regarding your child’s speech, hearing, or overall development, please consult a qualified professional such as a pediatrician or speech-language pathologist.
+```
 
 ## Feature Graphic
+
+```
 Capture little words
 as big milestones
+```
 
 ## Store Screenshot Copy
+
+```
 1 Track their words, watch their world.
 2 Track with a tap. Milestones, videos, and daily Insights.
 3 "Da" to "Daddy". Cherish Their great journey.
+```
 
 ## Store Items
+
+```
 * Premium Features
 * Premium removes video limits and unlocks backup. It is for families who want to keep richer records of speech, expressions, and everyday interactions while protecting precious memories.
-
+```

@@ -21,7 +21,7 @@ const config: Config = {
 
   i18n: {
     defaultLocale: 'ja',
-    locales: ['ja'],
+    locales: ['ja', 'en', 'zh-Hant'],
   },
 
   future: {
@@ -62,6 +62,7 @@ const config: Config = {
         src: 'img/logo.svg',
       },
       items: [
+        {type: 'localeDropdown', position: 'right'},
         {
           href: 'mailto:info@odokura.jp',
           label: 'お問い合わせ',

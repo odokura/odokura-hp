@@ -2,17 +2,19 @@
 
 Two agents share this repo. Stay in your lane unless the user says otherwise.
 
-- **Claude** owns design, verification, and environment setup: investigating the
-  codebase, diagnosing root causes, proposing the approach, writing the
-  implementation prompt for Codex, then building/running/checking the result and
-  confirming it behaves correctly. Claude does not write feature code by default —
-  it hands Codex a precise prompt instead.
-- **Codex** owns implementation: turning Claude's prompt into the actual code
-  changes.
+- **Claude** owns design and environment setup: investigating the codebase,
+  diagnosing root causes, proposing the approach, and writing the implementation
+  prompt for Codex — including the acceptance criteria and the build/run/verification
+  steps Codex must perform. Claude does not write feature code by default — it hands
+  Codex a precise prompt instead, then reviews the results Codex reports back and, if
+  verification failed, diagnoses the cause and revises the next prompt.
+- **Codex** owns implementation and verification: turning Claude's prompt into the
+  actual code changes, then running the build/typecheck/app per the prompt's
+  verification steps and reporting whether it passes (success log or full error).
 
 When the user asks Claude to "implement" directly, Claude may write the code; but
-absent that, Claude's deliverable for a build task is a clear Codex prompt plus the
-design and verification around it.
+absent that, Claude's deliverable for a build task is a clear Codex prompt that
+includes the design, the acceptance criteria, and the verification Codex must run.
 
 # Ponytail, lazy senior dev mode
 

@@ -1,3 +1,10 @@
+---
+title: ver.3 検討メモ
+sidebar_label: ver.3 検討メモ
+draft: true
+sidebar_position: 4
+---
+
 # ver.3 検討メモ
 
 ## 1. 位置づけ

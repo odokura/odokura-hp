@@ -2,6 +2,7 @@
 title: トップページ仕様
 sidebar_label: トップページ仕様
 draft: true
+sidebar_position: 1
 ---
 
 # トップページ仕様
