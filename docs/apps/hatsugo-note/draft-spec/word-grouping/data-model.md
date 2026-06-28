@@ -32,11 +32,13 @@ interface SpeechRecord {
   // …現行フィールド…
   conceptId?: string;  // 所属する concept（任意）
   lemma?: string;      // 基本形 / 代表形（任意）
+  yomi?: string;       // 見出し名/単語入力時の読み（任意・自動推定）
 }
 ```
 
 - `lemma` は**レコードに文字列で持つ**だけ（マスタを持たない）。lemma グループは `lemma` の文字列一致で作る。
 - `conceptId` は次の concept マスタを参照する。
+- `yomi` は見出し名/単語入力時のキー入力から自動推定した読み。ユーザーが手動編集できる。
 
 ## 概念マスタ（MVP は最小）
 
@@ -46,6 +48,7 @@ concept は「ユーザーが束ねた意味グループ」。MVP では **`id` 
 interface LexicalConcept {
   id: string;     // 例: "concept_1719500000000-x8a2"
   label: string;  // グループの表示名（ユーザーが決められる）
+  yomi?: string;  // 見出しラベルの読み（任意・自動推定）
 }
 ```
 
