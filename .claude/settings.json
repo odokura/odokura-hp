@@ -12,7 +12,20 @@
       "Bash(rm word-grouping.md)",
       "Read(//c/c/dev/odokura-hp/docs/apps/hatsugo-note/**)",
       "Bash(git -C /c/dev/hatsugo-note remote get-url origin)",
-      "Bash(gh auth *)"
+      "Bash(gh auth *)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 8082 -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Process -Id 20072 -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Id 20072 -Force -Confirm:$false)",
+      "Bash(git show *)",
+      "Read(//tmp/**)",
+      "Bash(cp \"app/\\(tabs\\)/list.tsx\" /tmp/list.final.tsx)",
+      "Bash(cp /tmp/list.head.tsx \"app/\\(tabs\\)/list.tsx\")",
+      "Bash(grep -n \"const record = { ...latest, word: item.label\" \"app/\\(tabs\\)/list.tsx\")",
+      "Bash(git commit -m ' *)",
+      "Bash(cp /tmp/list.final.tsx \"app/\\(tabs\\)/list.tsx\" && git diff --stat \"app/\\(tabs\\)/list.tsx\")"
+    ],
+    "additionalDirectories": [
+      "c:\\tmp"
     ]
   }
 }

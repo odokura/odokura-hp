@@ -61,6 +61,9 @@ interface LexicalConcept {
 ### マージ / 解除のライフサイクル
 
 - **マージ**: 対象レコードの `conceptId` を同じ値にする。surface レコード自体は変更しない（非破壊）。
+- **フォールドイン（normalizeKey の取り込み）**: あるレコードに `conceptId` を新規付与するとき、**同じ [`normalizeKey`](./dedup-levels.md) を持ち、まだ `conceptId` を持たない既存レコードがあれば、それらにも同じ `conceptId` を付与する**。
+  - なぜ必要か: [グルーピングの優先順位](#グルーピングの優先順位)は `conceptId` 一致を最優先するため、同じ正規化表記でも一方だけ `conceptId` を持つと**別グループに分裂し、同じ見出しが一覧に複数行表示される**（例: `いぬ`（無印）と `いぬ`（`わんわん` concept に参加、表示名が同じ）が別行になる）。フォールドインしないと、L0′ で本来 1 つのはずの表記が分裂したまま残る。
+  - 適用箇所: 新規 concept 作成時・既存 concept への参加時のどちらも対象（[集約 UX](./aggregation-ux.md) の入力時提案・手動集約の両方）。
 - **解除**: 対象レコードの `conceptId` を外す。
 - **孤児の掃除**: ある `conceptId` を参照するレコードが **1 件以下**になったら、その concept は意味を持たないので、残った 1 件の `conceptId` を外し、`lexical_concepts` から該当エントリを削除する。
 
@@ -69,8 +72,10 @@ interface LexicalConcept {
 表示上の「ひとまとまり」は次の順で決める。
 
 1. `conceptId` が同じ → 同一グループ（表示名は `LexicalConcept.label`）。
-2. それ以外で `lemma` が同じ → 同一グループ。
+2. それ以外で `lemma` が同じ → 同一グループ（**表示名は `lemma`＝基本形**）。
 3. それ以外は surface を [`normalizeKey`](./dedup-levels.md) で正規化した値が同じものをまとめる（L0′）。表示名は代表 surface（最新更新のもの）。
+
+→ 表示名（見出しラベル）の優先順位は **`concept.label` ＞ `lemma`（基本形）＞ 代表 surface**。concept・lemma は固定の名前を持ち、それ以外だけ最新 surface で揺れる。
 
 ## 保存・バックアップ・移行
 
