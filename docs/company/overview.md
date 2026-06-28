@@ -22,5 +22,5 @@ ODOKURA は、モバイルアプリケーション開発およびソフトウェ
 ## アプリに関する情報
 
 - [Hatsu-go](../apps/hatsugo-note/overview.md)
-- [Hatsu-go プライバシーポリシー](../apps/hatsugo-note/legal/privacy-policy.md)
-- [Hatsu-go 利用規約](../apps/hatsugo-note/legal/terms-of-service.md)
+- [Hatsu-go プライバシーポリシー](../apps/hatsugo-note/privacy-policy)
+- [Hatsu-go 利用規約](../apps/hatsugo-note/terms-of-service)

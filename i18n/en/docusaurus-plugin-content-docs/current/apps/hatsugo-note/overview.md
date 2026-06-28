@@ -12,8 +12,8 @@ The app values making it easy to keep everyday observations, such as "when and w
 
 ## Terms and Policies
 
-- [Privacy Policy](./legal/privacy-policy.md)
-- [Terms of Service](./legal/terms-of-service.md)
+- [Privacy Policy](./privacy-policy)
+- [Terms of Service](./terms-of-service)
 
 ## What This App Aims To Do
 

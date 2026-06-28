@@ -62,6 +62,20 @@ first words,baby talk,language delay,special needs,early intervention,babble,par
 
 Character count: 91 / 100
 
+## In-App Purchase Localization: Premium
+
+### Display Name
+
+```
+Hatsu-go Premium
+```
+
+### Description
+
+```
+Unlimited videos and secure backup.
+```
+
 ## Notes
 
 - Keywords are comma-separated with no spaces to conserve the 100-character limit.

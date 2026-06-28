@@ -4,7 +4,15 @@
       "Bash(npx docusaurus *)",
       "Bash(npm run build:*)",
       "PowerShell(npm run build 2>&1)",
-      "PowerShell(npm run build 2>&1 | Select-String -Pattern \"Error|broken|Can't|Cause|locale|\\\\.md\" | Select-Object -First 40 | ForEach-Object { $_.Line })"
+      "PowerShell(npm run build 2>&1 | Select-String -Pattern \"Error|broken|Can't|Cause|locale|\\\\.md\" | Select-Object -First 40 | ForEach-Object { $_.Line })",
+      "Read(//c/c/dev/hatsugo-note/i18n/locales/**)",
+      "Bash(cd /c/dev/hatsugo-note && echo \"=== onboarding_shown / Onboarding refs ===\" && grep -rn \"onboarding_shown\\\\|onboardingShown\\\\|OnboardingModal\\\\|handleOnboardingIntro\\\\|onboarding\" app/ storage/ lib/onboarding-intro.ts --include=*.ts --include=*.tsx | grep -v \".test.\")",
+      "Read(//c/c/dev/hatsugo-note/**)",
+      "Bash(mv message.md onboarding-message.md)",
+      "Bash(rm word-grouping.md)",
+      "Read(//c/c/dev/odokura-hp/docs/apps/hatsugo-note/**)",
+      "Bash(git -C /c/dev/hatsugo-note remote get-url origin)",
+      "Bash(gh auth *)"
     ]
   }
 }

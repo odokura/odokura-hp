@@ -66,6 +66,20 @@ Hatsu-go 是一款協助家長記錄孩子發語發展的管理工具。
 牙牙學語,疊字,學說話,語言遲緩,發展障礙,早療,特殊需求,口語,兒童,育兒,幼兒,親子,繪本,里程碑
 ```
 
+## In-App Purchase Localization: Premium
+
+### Display Name
+
+```
+Hatsu-go Premium
+```
+
+### Description
+
+```
+不限次數記錄影片，也可使用備份功能。
+```
+
 ## Notes
 
 App Store の各文字数上限の目安は、App Name 30 / Subtitle 30 / Promotional Text 170 / Keywords 100 / Description 4000。

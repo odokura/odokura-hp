@@ -95,11 +95,11 @@ const config: Config = {
             },
             {
               label: 'Hatsu-go プライバシーポリシー',
-              to: '/docs/apps/hatsugo-note/legal/privacy-policy',
+              to: '/docs/apps/hatsugo-note/privacy-policy',
             },
             {
               label: 'Hatsu-go 利用規約',
-              to: '/docs/apps/hatsugo-note/legal/terms-of-service',
+              to: '/docs/apps/hatsugo-note/terms-of-service',
             },
           ],
         },

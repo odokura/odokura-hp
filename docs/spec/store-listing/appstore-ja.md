@@ -67,6 +67,20 @@ Hatsu-goは、親が子供の発語発達を記録するための、管理ツー
 初語,喃語,はつご,言葉の遅れ,発達障害,療育,おしゃべり,子育て,幼児,赤ちゃん,知育,絵本,読み聞かせ,指差し,日記, Hatsugo, 発語
 ```
 
+## In-App Purchase Localization: Premium
+
+### Display Name
+
+```
+Hatsu-go Premium
+```
+
+### Description
+
+```
+動画を無制限に記録。バックアップも利用できます。
+```
+
 ## Notes
 
 App Store の各文字数上限の目安は、App Name 30 / Subtitle 30 / Promotional Text 170 / Keywords 100 / Description 4000。

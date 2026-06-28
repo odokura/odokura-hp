@@ -51,8 +51,8 @@ sidebar_position: 2
 ```text
 アプリ > Hatsu-go
 - apps/hatsugo-note/overview
-- apps/hatsugo-note/legal/privacy-policy
-- apps/hatsugo-note/legal/terms-of-service
+- apps/hatsugo-note/privacy-policy
+- apps/hatsugo-note/terms-of-service
 
 会社情報
 - company/overview
@@ -148,8 +148,8 @@ i18n/<locale>/docusaurus-plugin-content-docs/current/<元と同じパス>
 
 ```text
 apps/hatsugo-note/overview
-apps/hatsugo-note/legal/privacy-policy
-apps/hatsugo-note/legal/terms-of-service
+apps/hatsugo-note/privacy-policy
+apps/hatsugo-note/terms-of-service
 ```
 
 ナビバーには Docusaurus の `localeDropdown` による言語切替を追加する。
