@@ -22,7 +22,8 @@
       "Bash(cp /tmp/list.head.tsx \"app/\\(tabs\\)/list.tsx\")",
       "Bash(grep -n \"const record = { ...latest, word: item.label\" \"app/\\(tabs\\)/list.tsx\")",
       "Bash(git commit -m ' *)",
-      "Bash(cp /tmp/list.final.tsx \"app/\\(tabs\\)/list.tsx\" && git diff --stat \"app/\\(tabs\\)/list.tsx\")"
+      "Bash(cp /tmp/list.final.tsx \"app/\\(tabs\\)/list.tsx\" && git diff --stat \"app/\\(tabs\\)/list.tsx\")",
+      "Edit(/.claude/skills/codex-git/**)"
     ],
     "additionalDirectories": [
       "c:\\tmp"
