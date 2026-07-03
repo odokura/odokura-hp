@@ -41,6 +41,6 @@ npm run serve
 - `sidebars.ts`: ドキュメントのサイドバー設定
 - `src/pages/index.tsx`: トップページ
 - `docs/company/`: 会社情報、会社向けプライバシーポリシー
-- `docs/apps/hatsugo-note/`: Hatsu-go 関連ページ
+- `docs/apps/hatsugo/`: Hatsu-go 関連ページ
 - `static/`: favicon、ロゴ、CNAME などの静的ファイル
 - `build/`: ビルド成果物
