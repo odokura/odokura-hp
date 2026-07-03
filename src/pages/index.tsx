@@ -6,7 +6,7 @@ import styles from './index.module.css';
 const additionalLinks = [
   {
     label: 'App overview',
-    to: '/docs/apps/hatsugo-note/overview',
+    to: '/docs/apps/hatsugo/overview',
   },
   {
     label: 'Company',

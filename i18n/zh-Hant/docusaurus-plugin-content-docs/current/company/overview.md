@@ -21,6 +21,6 @@ ODOKURA 是從事行動應用程式開發與軟體開發的事業者。
 
 ## App 相關資訊
 
-- [Hatsu-go](../apps/hatsugo-note/overview.md)
-- [Hatsu-go 隱私權政策](../apps/hatsugo-note/privacy-policy)
-- [Hatsu-go 使用條款](../apps/hatsugo-note/terms-of-service)
+- [Hatsu-go](../apps/hatsugo/overview.md)
+- [Hatsu-go 隱私權政策](../apps/hatsugo/privacy-policy)
+- [Hatsu-go 使用條款](../apps/hatsugo/terms-of-service)

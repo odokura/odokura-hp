@@ -78,7 +78,7 @@ sidebar_position: 1
 
 現在のリンクは次の 3 件。
 
-- `App overview`: Docusaurus `Link` で `/docs/apps/hatsugo-note/overview` へ遷移する。
+- `App overview`: Docusaurus `Link` で `/docs/apps/hatsugo/overview` へ遷移する。
 - `Company`: Docusaurus `Link` で `/docs/company/overview` へ遷移する。
 - `Contact`: 通常の `<a>` で `mailto:info@odokura.jp` へ遷移する。
 

@@ -91,15 +91,15 @@ const config: Config = {
           items: [
             {
               label: 'Hatsu-go',
-              to: '/docs/apps/hatsugo-note/overview',
+              to: '/docs/apps/hatsugo/overview',
             },
             {
               label: 'Hatsu-go プライバシーポリシー',
-              to: '/docs/apps/hatsugo-note/privacy-policy',
+              to: '/docs/apps/hatsugo/privacy-policy',
             },
             {
               label: 'Hatsu-go 利用規約',
-              to: '/docs/apps/hatsugo-note/terms-of-service',
+              to: '/docs/apps/hatsugo/terms-of-service',
             },
           ],
         },

@@ -21,6 +21,6 @@ This site provides operator information and public information about the apps we
 
 ## App Information
 
-- [Hatsu-go](../apps/hatsugo-note/overview.md)
-- [Hatsu-go Privacy Policy](../apps/hatsugo-note/privacy-policy)
-- [Hatsu-go Terms of Service](../apps/hatsugo-note/terms-of-service)
+- [Hatsu-go](../apps/hatsugo/overview.md)
+- [Hatsu-go Privacy Policy](../apps/hatsugo/privacy-policy)
+- [Hatsu-go Terms of Service](../apps/hatsugo/terms-of-service)

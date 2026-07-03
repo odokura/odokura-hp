@@ -50,9 +50,9 @@ sidebar_position: 2
 
 ```text
 アプリ > Hatsu-go
-- apps/hatsugo-note/overview
-- apps/hatsugo-note/privacy-policy
-- apps/hatsugo-note/terms-of-service
+- apps/hatsugo/overview
+- apps/hatsugo/privacy-policy
+- apps/hatsugo/terms-of-service
 
 会社情報
 - company/overview
@@ -147,9 +147,9 @@ i18n/<locale>/docusaurus-plugin-content-docs/current/<元と同じパス>
 今回翻訳する範囲は次の 3 ページで、en と zh-Hant の両方を用意する。
 
 ```text
-apps/hatsugo-note/overview
-apps/hatsugo-note/privacy-policy
-apps/hatsugo-note/terms-of-service
+apps/hatsugo/overview
+apps/hatsugo/privacy-policy
+apps/hatsugo/terms-of-service
 ```
 
 ナビバーには Docusaurus の `localeDropdown` による言語切替を追加する。
