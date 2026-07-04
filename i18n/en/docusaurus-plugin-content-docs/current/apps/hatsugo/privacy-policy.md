@@ -7,6 +7,16 @@ title: Privacy Policy
 
 Last updated: March 26, 2026
 
+Key points of this policy:
+
+- **Data is stored only on your device.** Speech records, videos, and settings are never automatically sent to our servers or cloud services.
+- **The App does not obtain your payment information.** Billing is handled by Apple App Store or Google Play, and card details are never stored by this App.
+- **Backups are encrypted.** Backup files are encrypted using AES-256-GCM. Your passkey is not stored on the device or on our servers — if it is lost, restoration is not possible.
+- **We have no means to provide your data to third parties unless you perform a sharing action.** All data is stored only on your device — we have no server-side access or mechanism to share it externally.
+- **You can manage and delete your own data.** All data can be deleted in the App or by uninstalling it.
+
+---
+
 ## 1. Operator Information
 
 This app, "Hatsu-go" (the "App"), is operated by ODOKURA LLC.
@@ -77,7 +87,7 @@ The passkey is not stored on the device or on our servers. If it is lost, restor
 
 - Purchases and management of Premium features use the billing systems of Apple App Store or Google Play
 - We do not provide data to third parties except when the user performs a sharing action
-- Except as required by law, we do not continuously collect, view, or analyze speech records, videos, or similar data
+- Because all speech records, videos, and similar data are stored only on your device, we have no means to collect, view, or analyze them
 
 ## 6. Use of Device Permissions
 
