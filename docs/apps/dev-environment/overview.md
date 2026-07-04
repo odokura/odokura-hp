@@ -14,16 +14,16 @@ ODOKURA では現在 2 つのリポジトリを Claude Code と Codex CLI の併
 | リポジトリ | 内容 | スタック |
 | --- | --- | --- |
 | `odokura-hp`（このリポジトリ） | 会社HP・Hatsu-go 紹介・規約・仕様メモを載せる Docusaurus サイト | Docusaurus 3 / React 19 / TypeScript |
-| `hatsugo-note` | Hatsu-go 本体（子どもの発語記録アプリ） | Expo / React Native / TypeScript |
+| Hatsu-go | Hatsu-go 本体（子どもの発語記録アプリ） | Expo / React Native / TypeScript |
 
 両リポジトリとも Claude Code と Codex CLI を併用し、役割分担も Claude 設計・Codex 実装に統一している。詳細は各ページを参照。
 
 - [odokura-hp の開発環境](./odokura-hp.md)
-- [hatsugo-note の開発環境](./hatsugo-note.md)
+- [Hatsu-go の開発環境](./hatsugo.md)
 
 ## 役割分担の比較
 
-| | odokura-hp | hatsugo-note |
+| | odokura-hp | Hatsu-go |
 | --- | --- | --- |
 | 設計・プロンプト作成 | Claude | Claude |
 | 実装 | Codex | Codex |
@@ -31,7 +31,7 @@ ODOKURA では現在 2 つのリポジトリを Claude Code と Codex CLI の併
 | git操作（実装フェーズ以降） | Codex に一言で指示 | Codex に一言で指示 |
 | issue管理 | Claude（`gh` で直接） | Claude（`gh` で直接） |
 
-両リポジトリとも同じ役割分担（Claude 設計・Codex 実装）を採用している。以前はリポジトリごとに逆の分担だったが、2026-06-28 以降 hatsugo-note 側も統一した。
+両リポジトリとも同じ役割分担（Claude 設計・Codex 実装）を採用している。以前はリポジトリごとに逆の分担だったが、2026-06-28 以降 Hatsu-go 側も統一した。
 
 ## 共通する点
 
@@ -39,4 +39,4 @@ ODOKURA では現在 2 つのリポジトリを Claude Code と Codex CLI の併
 - どちらも GitHub issue を作業単位にしている（`gh issue` で作成・参照）。
 - どちらも「仕様/ルールをまず文書化し、実装はそれに合わせる」順序を踏む。
   - odokura-hp: `docs/spec`（`draft: true` の社内限定仕様）→ 実装
-  - hatsugo-note: `AGENTS.md` / `CLAUDE.md` → 実装
+  - Hatsu-go: `AGENTS.md` / `CLAUDE.md` → 実装

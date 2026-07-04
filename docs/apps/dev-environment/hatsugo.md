@@ -1,11 +1,11 @@
 ---
-title: hatsugo-note の開発環境
-sidebar_label: hatsugo-note
+title: Hatsu-go の開発環境
+sidebar_label: Hatsu-go
 draft: true
 sidebar_position: 3
 ---
 
-# hatsugo-note の開発環境
+# Hatsu-go の開発環境
 
 Hatsu-go 本体（子どもの発語記録アプリ）リポジトリの開発環境メモ。リポジトリ本体は `odokura-hp` とは別（このサイトには含まれない）。
 
@@ -39,7 +39,7 @@ npm test
 
 ## ビルド・リリース
 
-- EAS クラウドビルド（`development` / `preview` / `production` の 3 プロファイル）と Android ローカル dev build は別物。用途・コマンドの詳細は hatsugo-note リポジトリの `README.md` を参照する。
+- EAS クラウドビルド（`development` / `preview` / `production` の 3 プロファイル）と Android ローカル dev build は別物。用途・コマンドの詳細は Hatsu-go リポジトリの `README.md` を参照する。
 - iOS は Windows 機にネイティブ `ios/` が無いため、EAS クラウドビルド以外の選択肢が無い。
 - ストア提出（`eas submit`）は **Claude・Codex のどちらも実行しない**。常にユーザー本人が実行する（`AGENTS.md` の「Git と安全性」と一致）。
 - バージョン番号（`app.json` の `version`）の手動更新は、ユーザーまたは依頼を受けた Codex が行ってよい。ただし、`eas submit` を含むストア提出操作自体は対象外。
@@ -52,7 +52,7 @@ npm test
 - **Codex**: 実装 + 検証。diff サマリ・検証コマンドの全出力・受け入れ条件ごとの自己チェックを報告する。
 - ユーザーが「実装して」と直接 Claude に頼んだ場合は、Claude がコードを書いてよい。
 
-hatsugo-note リポジトリ自体に `.claude/skills/` は無い。Claude が hatsugo-note 向けに書く実装プロンプトは、odokura-hp の `codex-prompt` skill の形式（対象ファイル / 背景 / やってほしいこと / 制約 / 検証）を踏襲する。
+Hatsu-go リポジトリ自体に `.claude/skills/` は無い。Claude が Hatsu-go 向けに書く実装プロンプトは、odokura-hp の `codex-prompt` skill の形式（対象ファイル / 背景 / やってほしいこと / 制約 / 検証）を踏襲する。
 
 標準フロー:
 

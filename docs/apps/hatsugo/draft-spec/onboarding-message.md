@@ -122,7 +122,7 @@ onboardingPage2Btn: 開始記錄
 
 ## 確認手順
 
-`hatsugo-note` で確認する。
+Hatsu-go リポジトリで確認する。
 
 ```powershell
 npm.cmd test -- onboarding-intro
