@@ -15,6 +15,8 @@ When the user asks Claude to "implement" directly, Claude may write the code.
   docs folder structure, or Docusaurus build/broken-link issues.
 - Use `codex-prompt` when writing implementation prompts for Codex or reviewing
   Codex reports.
+- Use `spec-review` when reviewing an implementation repo (neteclay, hatsugo-note)
+  against `docs/apps/<app>/draft-spec`.
 - Use `codex-git` for git operations requested after implementation work, such as
   commit or push.
 - Use `lazy-dev` for YAGNI, minimal-change implementation, and review judgment.
