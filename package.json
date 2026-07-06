@@ -7,7 +7,8 @@
     "build": "docusaurus build",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "store-count": "node scripts/store-char-count.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "3.9.2",

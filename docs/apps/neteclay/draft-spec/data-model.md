@@ -56,7 +56,7 @@ interface SoundPack {
 // 再生中だけ使う状態。永続化せず、復帰時は時刻差分から再計算する
 type PlaybackPhase = 'intro' | 'intro_hold' | 'deepening' | 'fading' | 'stopping';
 type StopReason = 'fade_complete' | 'manual' | 'safety_timeout' | 'interrupted' | 'error';
-type PendingStopReason = 'fade_complete' | 'manual' | 'safety_timeout';
+type PendingStopReason = 'fade_complete' | 'safety_timeout'; // 停止(manual)は即停止で fading を通らないため含めない
 
 interface RuntimePlaybackState {
   phase: PlaybackPhase;
@@ -74,9 +74,7 @@ interface AppSettings {
   paramsCustomized: boolean;   // 将来の既定値更新で、手動設定を上書きしないための印
   presetId: string;            // 音色プリセット
   onboardingDone: boolean;
-  hideSleepEstimate: boolean;  // ホームの「だいたい○分」表示を隠す
   focusModeHintShown: boolean; // おやすみモード/集中モード案内の表示と通知権限要求を行ったか。初回再生開始時に true にし、以降は再度案内・権限要求を行わない
-  hapticFeedbackEnabled: boolean; // タップ操作の振動フィードバック。既定オフ
 }
 
 // 再生中の親のリアルタイム操作イベント
@@ -153,12 +151,12 @@ interface PurchaseState {
 - 開始テンポ（75 BPM）とフェードアウト時間（5 分）はアプリ固定値として扱い、設定には保存しない。
 - 再生開始時に、endedAt=null、stopReason=null、pendingStopReason=null の Session を即時作成する。
   OS kill やクラッシュでも開始済みセッションを検出できるようにするため。
-- 「寝た」「寝たを取り消す」「もう一度あやす」は、操作直後に events へ追記して保存する。
-- 通常停止・安全停止・自動停止は、フェード開始時に Session.pendingStopReason を保存し、フェード完了時に endedAt と stopReason を確定して pendingStopReason を null に戻す。
-- fading 中に「もう一度あやす」が押された場合は、Session.pendingStopReason を null に戻してから intro に戻す。
-- 緊急停止・error・interrupted は、停止確定時に endedAt と stopReason を即時保存する。
+- 「寝た」「寝たを取り消す」「寝ない」は、操作直後に events へ追記して保存する。
+- 安全停止・自動停止は、フェード開始時に Session.pendingStopReason を保存し、フェード完了時に endedAt と stopReason を確定して pendingStopReason を null に戻す。
+- fading 中に「寝ない」が押された場合は、Session.pendingStopReason を null に戻してから intro に戻す。
+- 停止（停止ボタン・manual）・error・interrupted は、停止確定時に endedAt と stopReason を即時保存する。
 - 自動モードで総再生時間に達した場合は stopReason を fade_complete とする。
-- 親が停止した場合は manual とする。通常停止は短いフェードで消音してから閉じる。
+- 親が停止ボタンを押した場合は manual とする。停止は即停止で、fading を通さず、クリック防止の最短フェード（0.4 秒程度）のみで閉じる。
 - 手動モードで「寝た」が押されないまま安全上限に達した場合は safety_timeout とする。
 - 着信・他アプリ再生などの中断は自動復帰を試みる。復帰できなければ interrupted でセッションを閉じる。
 - 音声エンジンの異常で継続できない場合は error とする。
@@ -170,7 +168,7 @@ interface PurchaseState {
   fell_asleep の直前に soothe_again があれば、その soothe_again から fell_asleep までの時間にする。
   直前の soothe_again がなければ、セッション開始から fell_asleep までの時間にする。
 - estimatedOnsetMs は自動モードで使った入眠目安時刻を保存する。親が押した記録ではないため、fell_asleep イベントにはしない。
-- 「だいたい○分で寝つく」は sleepLatencyMs を優先し、手動記録が少ない場合だけ estimatedOnsetMs を補助的に使う。
+- ホームに寝つき目安は表示しない。sleepLatencyMs はタイムライン調整画面の一覧表示にだけ使う。estimatedOnsetMs は記録として保存するが表示しない。
 - RuntimePlaybackState は保存しない。アプリ復帰時は startedAt、params、events、現在時刻から[再生フロー](./playback-flow.md)に従って再計算する。
 - paramsCustomized が false の場合だけ、将来のアプリ更新で既定値を移行してよい。true の場合はユーザーの時間設定を保持する。
 - 再生開始時に params と presetId を Session へスナップショットする。再生中に設定画面で params や presetId を変更しても、進行中のセッションには反映せず次回再生から使う。
@@ -192,9 +190,7 @@ interface PurchaseState {
 | paramsCustomized | false |
 | presetId | default_melody |
 | onboardingDone | false |
-| hideSleepEstimate | false |
 | focusModeHintShown | false |
-| hapticFeedbackEnabled | false |
 | ownedPackIds | 空配列 |
 
 ## 保存キーと容量
@@ -205,10 +201,8 @@ interface PurchaseState {
 | `sessions` | Session の配列（操作イベント含む） | 1 回 300 B 程度。365 件でも年間 100 KB 級 |
 | `purchase` | PurchaseState | 1 KB 未満 |
 
-- セッションは MVP では直近 365 件を保存する。「だいたい○分で寝つく」表示は各セッションの sleepLatencyMs を主に集計する。
-  手動記録が少ない初期状態では estimatedOnsetMs を補助的に使える。
-- 手動の sleepLatencyMs が 3 件以上ある場合は、estimatedOnsetMs を集計から外す。自動モードの推定値で実績を上書きしない。
-- 手動記録が少ない場合の表示は「設定では約○分で見守りに入ります」のように、実績ではなく目安であることが分かる文言にする。
+- セッションは MVP では直近 365 件を保存する。タイムライン調整画面の一覧は各セッションの sleepLatencyMs を新しい順に表示する。
+- estimatedOnsetMs は記録として保存するが、ホームにもタイムライン一覧にも表示しない。
 - セッション履歴は MVP では直近 365 件を保持する。上限を超えた古いセッションは削除してよい。
 - タイムライン調整画面では、手動モードかつ sleepLatencyMs があるセッションだけを新しい順に最大 100 件表示する。
   表示対象は startedAt、presetId、sleepLatencyMs、soothe_again の回数程度に絞り、詳細な履歴分析画面にはしない。
