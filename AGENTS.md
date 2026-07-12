@@ -1,13 +1,12 @@
 # odokura-hp Agent Rules
 
-## Role Division
+## Development and Review
 
-- **Claude**: design + writing the Codex implementation prompt, and reviewing Codex's
-  report. Does not write feature code by default.
-- **Codex**: implementation + verification. Reports a diff summary, the full
-  verification output, and a self-check against the acceptance criteria.
-
-When the user asks Claude to "implement" directly, Claude may write the code.
+- **Codex** independently performs specification checks, design, issue creation,
+  implementation, review, and verification.
+- Before and after implementation, Codex checks the applicable specification and
+  acceptance criteria. Completion reports include a diff summary, full verification
+  output, and an acceptance-criteria self-check.
 
 ## Skills
 
