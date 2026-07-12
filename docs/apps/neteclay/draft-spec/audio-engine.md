@@ -117,13 +117,44 @@ sidebar_position: 4
 
 | presetId | phase | uri | loopDurationMs | bpm | loudnessLufs |
 | --- | --- | --- | --- | --- | --- |
-| default_melody | intro | assets/audio/presets/default_melody/intro.wav | 180000 | 75 | -20 |
-| default_melody | deepening | assets/audio/presets/default_melody/deepening.wav | 180000 | 50 | -20 |
-| default_ambient | intro | assets/audio/presets/default_ambient/intro.wav | 180000 | null | -20 |
-| default_ambient | deepening | assets/audio/presets/default_ambient/deepening.wav | 180000 | null | -20 |
+| default_melody | intro | assets/audio/presets/default_melody/intro.wav | 57600 | 75 | -20 |
+| default_melody | deepening | assets/audio/presets/default_melody/deepening.wav | 48000 | 50 | -20 |
+| default_ambient | intro | assets/audio/presets/default_ambient/intro.wav | 15000 | null | -20 |
+| default_ambient | deepening | assets/audio/presets/default_ambient/deepening.wav | 15000 | null | -20 |
+| calm_pack_1_lullaby | intro | assets/audio/presets/calm_pack_1_lullaby/intro.wav | 10000 | 72 | -20 |
+| calm_pack_1_lullaby | deepening | assets/audio/presets/calm_pack_1_lullaby/deepening.wav | 15000 | 48 | -20 |
+| calm_pack_1_ambient | intro | assets/audio/presets/calm_pack_1_ambient/intro.wav | 15000 | null | -20 |
+| calm_pack_1_ambient | deepening | assets/audio/presets/calm_pack_1_ambient/deepening.wav | 15000 | null | -20 |
 
 - 実装はこのマニフェストを正として読み込む。音源制作で長さが変わる場合も、uri と loopDurationMs を更新してから実装に渡す。
 - 本番音源が未完成の間は、同じ uri 構造の検証用ループを置いて技術検証を進めてよい。
+- 現在の loopDurationMs は検証用音源の実長に合わせた値である。本番音源の制作時に実長へ再更新する。
+
+### 検証用音源（スクリプト生成）
+
+検証用音源は次のコマンドで生成する。
+
+```bash
+npm run audio:verification
+```
+
+生成物は `assets/audio/presets/` 配下の 8 ファイルとする。WAV は git にコミットせず、生成スクリプトを正とする。
+
+| presetId | phase | BPM | 長さ | サンプル数 | 内容 |
+| --- | --- | --- | --- | --- | --- |
+| default_melody | intro | 75 | 18 小節 = 57.6 秒 | 2,540,160 | C メジャーペンタトニックの 8 分音符アルペジオ + C2/G2 パッド |
+| default_melody | deepening | 50 | 10 小節 = 48.0 秒 | 2,116,800 | C2/G2/C3 のパッドのみ。プラックなし |
+| default_ambient | intro | null | 15.0 秒 | 661,500 | ローパスしたノイズドローン。やや動きあり |
+| default_ambient | deepening | null | 15.0 秒 | 661,500 | ローパスしたノイズドローン。帯域を絞る |
+| calm_pack_1_lullaby | intro | 72 | 3 小節 = 10.0 秒 | 441,000 | default_melody と同ロジックの低めの変形 |
+| calm_pack_1_lullaby | deepening | 48 | 3 小節 = 15.0 秒 | 661,500 | 低めのパッドのみ |
+| calm_pack_1_ambient | intro | null | 15.0 秒 | 661,500 | ローパスしたノイズドローン。音色違い |
+| calm_pack_1_ambient | deepening | null | 15.0 秒 | 661,500 | ローパスしたノイズドローン。帯域を絞る |
+
+- フォーマットは 44100Hz / 16bit PCM / モノラル WAV とする。
+- 各ファイルは RMS -20dBFS を目安に正規化し、ピークが -3dBFS を超えないようにする。
+- 末尾をまたぐノートのリリースはバッファ先頭へ折り返して合成し、ループ継ぎ目のクリックを構成的に避ける。
+- LFO・ゆらぎの周期はループ長の整数分の一とし、継ぎ目で位相が合うようにする。
 
 ## 音源アセット仕様
 
