@@ -55,7 +55,7 @@ Phase 2 以降の突合に使う）。
 metric × forecast_period ごとに一つ。属性は決算実績と同形で、actual_raw の代わりに
 previous_raw / revised_raw を持ち、baseline_type は使わない。
 
-## 投稿テンプレート
+## ローカル表示テンプレート
 
 ~~~text
 <企業名>（<コード>）｜業績予想
@@ -68,17 +68,17 @@ previous_raw / revised_raw を持ち、baseline_type は使わない。
 ## 優先度と重複キー
 
 - priority = 100 + 指標順（営業利益 3、親会社株主に帰属する当期純利益 2、売上高 1）。
-- 投稿重複キー:
+- 表示重複キー:
 
 ~~~text
 company_id / financial_forecast_revision / forecast_period（期末 + 期間種別） /
 consolidation_scope / metric / previous_raw / revised_raw
 ~~~
 
-前回・今回の値をキーに含める。再修正は値が変わるため新キーとなり投稿される。同じ修正を載せた
+前回・今回の値をキーに含める。再修正は値が変わるため新キーとなり表示される。同じ修正を載せた
 別文書は同キーで抑止される。訂正開示は correction_kind = source のバイパス（共通規則）。
 
-## 投稿しない条件（抑止理由コード）
+## 表示しない条件（抑止理由コード）
 
 共通抑止に加えて:
 
@@ -102,7 +102,7 @@ consolidation_scope / metric / previous_raw / revised_raw
 | 3 | 前回未定 | previous_undetermined 抑止 |
 | 4 | レンジ予想 | range_forecast 抑止 |
 | 5 | 配当予想の修正だけの開示 | 本種別の候補ゼロ（[配当](./dividend.md)側で処理、二重投稿なし） |
-| 6 | 再修正 | 新キーで投稿される |
+| 6 | 再修正 | 新キーで表示される |
 | 7 | XBRL なしの自由様式修正 | no_xbrl 抑止 |
 
 受入基準は決算実績と同じ 4 条件。加えてフィクスチャ 5 の二重投稿なしを結合テストで確認する。

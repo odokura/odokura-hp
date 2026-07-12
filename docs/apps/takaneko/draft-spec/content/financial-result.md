@@ -109,7 +109,7 @@ ContentSpec の版上げで行う。
 
 - 対象 metric は net_sales、operating_profit、profit_owners の 3 つ。eps ほかの抽出済み指標は
   financial_fact 保存のみとし、投稿対象の追加は ContentSpec の版上げで行う。
-- 実績値と検証済みの比較差は一つの company_fact（一投稿）にまとめ、baseline_type 属性で比較基準を
+- 実績値と検証済みの比較差は一つの company_fact（一表示）にまとめ、baseline_type 属性で比較基準を
   区別する。実績値ファクトと差分ファクトを別々に作らない。
 - 会社が数値とともに明示した増減要因は、文章抽出が必要なため MVP では扱わない（→ [将来種別（凍結）](./future.md)）。
   数値から bot が要因を推測してはならない。
@@ -139,7 +139,7 @@ ContentSpec の版上げで行う。
 根拠箇所（source_excerpt）は、当期実績セルと前年同期セルに対応する table 種別のレコードを参照する。
 locator には要素名・コンテキスト ID・unitRef・scale・decimals を記録し、原本 XBRL 内で再特定できるようにする。
 
-## 投稿テンプレート
+## ローカル表示テンプレート
 
 ~~~text
 <企業名>（<コード>）｜決算
@@ -170,7 +170,7 @@ locator には要素名・コンテキスト ID・unitRef・scale・decimals を
 
 - priority = 80 + 指標順（営業利益 3、売上高 2、親会社株主に帰属する当期純利益 1）。
   同一文書内では営業利益、売上高、親会社株主に帰属する当期純利益の順に採用される。
-- 投稿重複キー:
+- 表示重複キー:
 
 ~~~text
 company_id / financial_result / fiscal_year_end / period_type /
@@ -189,7 +189,7 @@ consolidation_scope / metric / fact_type=actual / baseline_type
 - 数値情報のない訂正（誤字訂正など、XBRL 再添付なし）は原本保存のみで投稿しない。
 - bot 自身の誤解析を直す system 訂正は、開示側の訂正とは別の経路で扱う（→ [配信](../distribution.md)の訂正）。
 
-## 投稿しない条件（抑止理由コード）
+## 表示しない条件（抑止理由コード）
 
 [共通契約](./common.md)の共通抑止（鮮度・重複・上限など）に加えて:
 

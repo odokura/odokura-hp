@@ -37,7 +37,7 @@ ContentSpec、抽出結果、投稿候補、投稿試行、運用操作を同じ
 | analysis_run | ContentSpec を用いた抽出・計算の実行記録 | 文書 ID、ContentSpec 版、実行時刻、品質状態 |
 | company_fact | 検証済みの一主題の企業理解用事実 | 銘柄 ID、種別、主題、対象時点・会計期間、属性 JSON、根拠箇所、財務値参照、ContentSpec 版、品質状態、訂正種別 |
 | post_candidate | 一企業ファクトから作成した投稿候補 | 本文、テンプレート ID、重複キー、判定結果、抑止理由、対象集合・配信ルール版 |
-| post_attempt | X 投稿の試行と結果 | 候補 ID、試行時刻、状態、X 投稿 ID、失敗分類 |
+| post_attempt | 旧外部配信機能の互換テーブル（private 運用では新規記録しない） | 候補 ID、試行時刻、状態、旧 X 投稿 ID、失敗分類 |
 | operation_event | 運用操作と障害 | キルスイッチ、設定変更、停止・再開、エラー、実行者 |
 
 ContentSpec の版（論理モデルの content_spec_version）は、物理的には config_version の
@@ -201,7 +201,7 @@ CREATE TABLE company_fact (
   attributes TEXT NOT NULL,     -- 種別固有 JSON
   quality TEXT NOT NULL,        -- postable / stored_only
   correction_kind TEXT,         -- NULL / source / system
-  corrects_x_post_id TEXT,      -- system 訂正が対象にした X 投稿 ID
+  corrects_x_post_id TEXT,      -- 旧外部配信機能の互換用 ID（private 運用では未使用）
   document_id INTEGER NOT NULL REFERENCES disclosure_document(id),
   analysis_run_id INTEGER NOT NULL REFERENCES analysis_run(id),
   content_spec_version_id INTEGER NOT NULL REFERENCES config_version(id),
