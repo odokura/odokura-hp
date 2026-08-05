@@ -94,7 +94,7 @@ sidebar_position: 5
 
 ```mermaid
 flowchart TB
-    setup[クリエイターが発行上限と価格モードを設定] --> waiting[14日間のKYC不要待機リスト]
+    setup[クリエイターが発行上限と価格モードを設定] --> waiting[14日間の本人確認不要待機リスト]
     waiting --> calculate[AIが上限以下で実発行数を算出]
     calculate --> result{算出結果}
     result -->|0| continueWait[待機を継続または公開見送り]

@@ -17,15 +17,14 @@ draft: true
 | --- | --- | --- | --- |
 | 発見・クリエイター一覧 | 閲覧、クリエイター・ランクの比較。アカウント不要 | 公開カタログのみ | [一般ユーザーとの関係](../concept/general/relationship-general.md) |
 | 待機登録 | 通知先だけで待機リストへ登録 | 通知先（ハッシュ化保存） | [価格・発行数の算出](../concept/general/pricing.md) |
-| アカウント作成・ログイン | 最小限の情報でアカウント作成。年齢確認なし | account | [属性開示・条件付き本人確認](../concept/foundation/identity-disclosure.md) |
+| アカウント作成・ログイン | 最小限の情報でアカウント作成。年齢確認・本人確認なし | account | [属性開示・決済事業者確認](../concept/foundation/identity-disclosure.md) |
 | 購入最終確認(一次発行・二次流通) | 規約へのリンク・同意チェック、支払済み期限、次回決済日、年額、自動更新の有無、停止期限、停止画面への導線を表示する。同意後にだけ取得を確定する。二次流通では運営が定めた再発行価格を支払う | certificate、issuance_reservation、secondary_listing、ledger_entry、terms_acceptance監査ログ | [取引ルール](../concept/general/transaction-general.md)、[二次流通](../concept/general/secondary-market.md) |
 | 保有証票一覧・タイムライン | 保有証票、来歴、支援履歴、証票支援累計額の確認 | 自分のcertificate（boost_total_amountを含む）、支援集計 | [関係記録・コンテンツ](../concept/benefits/content.md) |
 | 証票支援 | 保有中の証票へ追加の支援決済を行う | ledger_entry（certificate_boost）、certificate.boost_total_amount | [関係記録・コンテンツ](../concept/benefits/content.md) |
-| 属性共有設定 | 共有先・項目・目的の選択、撤回 | attribute_share_consent（自分の分） | [属性開示・条件付き本人確認](../concept/foundation/identity-disclosure.md) |
+| 属性共有設定 | 共有先・項目・目的の選択、撤回 | attribute_share_consent（自分の分） | [属性開示・決済事業者確認](../concept/foundation/identity-disclosure.md) |
 | 継続支援管理 | 支払済み期限、次回決済日、年額、自動更新の状態を確認し、自動継続の停止・再開または自主返還を行う。プログラム終了時は更新停止と終了後の閲覧継続を表示する | certificate.support_paid_until、auto_renew_enabled、next_renewal_at、ledger_entry | [取引ルール](../concept/general/transaction-general.md) |
 | 再発行申込み | 保有証票の再発行申込み。運営提示の再発行価格、付与予定クレジット額、失効日を確認する | secondary_listing | [二次流通](../concept/general/secondary-market.md) |
 | 再発行クレジット | 再発行クレジットの残高、利用履歴、失効予定日を確認する | reissue_credit_entry | [二次流通](../concept/general/secondary-market.md) |
-| 条件付きKYC実施 | 対象コンテンツ・役務利用直前のKYC | kyc_verification（自分の分） | [属性開示・条件付き本人確認](../concept/foundation/identity-disclosure.md) |
 | VIP・ExtraVIP招待受諾 | 招待の確認・承諾・辞退 | vip_invite（自分宛て） | [VIP・ExtraVIPユーザーとの関係](../concept/vip/relationship-vip.md) |
 | VIPコンシェルジュ専用スレッド | 希望共有、匿名打診への同意、条件確認 | concierge_case/message（自分の分） | [VIPコンシェルジュ運用](../concept/vip/vip-concierge.md) |
 | 通報・ブロック | 不適切なコンテンツ・メッセージの通報 | moderation_report | [関係記録・コンテンツ](../concept/benefits/content.md) |
@@ -55,7 +54,6 @@ draft: true
 | 機能領域 | 内容 | 関連する構想ページ |
 | --- | --- | --- |
 | VIPコンシェルジュ対応 | ケース一覧・状態管理、希望受付、匿名打診、条件調整 | [VIPコンシェルジュ運用](../concept/vip/vip-concierge.md) |
-| KYC設定・確認 | 対象コンテンツ・役務単位のKYC要否設定、結果参照 | [属性開示・条件付き本人確認](../concept/foundation/identity-disclosure.md) |
 | 台帳・精算 | 台帳照会、返金、クリエイター精算状況の確認 | [取引ルール](../concept/general/transaction-general.md) |
 | S1/S2契約管理 | `s1_offering`の公開状況、`service_engagement`の状態確認、履行不能時の代替・返金対応 | [任意提供・個別役務](../concept/benefits/templates.md) |
 | 任意固定コンテンツ審査 | `fixed_content_asset`の公開前レビュー、権利・安全上の問題による停止 | [関係記録・コンテンツ](../concept/benefits/content.md) |

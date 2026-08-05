@@ -7,7 +7,7 @@ draft: true
 
 # XXGGLL データモデル
 
-本ページは、証票・台帳・同意・KYC・監査ログを中心とした**エンティティとスキーマの正本**である。業務ルールは
+本ページは、証票・台帳・同意・監査ログを中心とした**エンティティとスキーマの正本**である。業務ルールは
 [構想](../concept/overview.md)を正本とし、本ページはそれをサーバー側で強制するためのデータ構造を定める。
 想定運用規模は小規模であり（[概要](./overview.md)）、テーブル構成も必要最小限にとどめる。
 
@@ -16,11 +16,9 @@ draft: true
 - 正本はサーバー側の単一リレーショナルDB（想定: PostgreSQL。選定は[技術検証計画](./tech-verification.md)）。
 - 証票の来歴・同意の撤回・監査ログは、更新ではなく追記で表現し、過去の状態を上書きしない。
 - 法的氏名、住所、生年月日、電話番号、カード情報、銀行口座情報、本人確認書類の原本は、いかなるテーブルにも
-  平文で保存しない（[属性開示・条件付き本人確認](../concept/foundation/identity-disclosure.md)の
+  平文で保存しない（[属性開示・決済事業者確認](../concept/foundation/identity-disclosure.md)の
   「共有しない情報」）。
 - 金額は最小通貨単位の整数またはNUMERICで保存し、通貨コードを分離する。
-- KYCで提出された本人確認書類は、DBとは別の短期保存領域（自動削除ルール付き）に一時的に置くだけとし、
-  判定後は速やかに削除する（[セキュリティ](./security.md)の「KYC・条件付き本人確認のセキュリティ」）。
 
 ## 主要エンティティ
 
@@ -38,7 +36,6 @@ draft: true
 | payment_review | 不正利用・異議申立て・公的機関の要請に係る決済確認と保留期限を記録する | 引き継がない |
 | payout_request | クリエイターが、蓄積したクリエイター報酬・別契約対価の出金を申請する記録 | 引き継がない |
 | stripe_webhook_event | Stripe WebhookのイベントID・種別・処理結果。本文は保存しない | — |
-| kyc_verification | 対象コンテンツ・役務単位の条件付きKYC結果 | 引き継がない |
 | attribute_share_consent | 項目単位の属性共有同意・撤回 | 引き継がない |
 | secondary_listing | 前保有者による再発行申込みと、新保有者に対する在庫仮押さえ | — |
 | waitlist_entry | 待機リスト登録と簡易重複防止用の指紋 | — |
@@ -159,7 +156,7 @@ CREATE TABLE certificate_event (
   occurred_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   detail JSONB
 );
--- 証票の来歴（公開可能な部分）はこのテーブルから再構成する。前保有者の支援額・属性・KYC結果は含めない。
+-- 証票の来歴（公開可能な部分）はこのテーブルから再構成する。前保有者の支援額・属性は含めない。
 
 CREATE TABLE concierge_case (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -198,7 +195,6 @@ CREATE TABLE s1_offering (
   title TEXT NOT NULL,
   terms JSONB NOT NULL, -- 商品内容、価格、数量上限、申込み期限、取消・返金条件等
   quantity_limit INTEGER NOT NULL CHECK (quantity_limit > 0),
-  requires_kyc BOOLEAN NOT NULL DEFAULT false, -- 対象コンテンツ・役務としてKYCが必要な設定か（→ KYC・条件付き本人確認）
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','open','sold_out','closed')),
   closes_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -215,7 +211,7 @@ CREATE TABLE service_engagement (
   concierge_case_id UUID REFERENCES concierge_case(id), -- kind='s2'はconcierge_caseでの調整を経て成立する
   terms JSONB NOT NULL, -- 提供内容・対象人数・回数・時間・期限、連絡手段、価格、変更・取消・返金条件、禁止事項、成果物の利用権等
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN (
-    'draft','terms_proposed','awaiting_kyc','contracted',
+    'draft','terms_proposed','contracted',
     'fulfilled','unfulfilled','cancelled','refunded'
   )),
   price NUMERIC(14,2),
@@ -329,29 +325,6 @@ CREATE INDEX idx_payout_creator ON payout_request (creator_id);
 -- 出金申請前に返金が発生した場合は、送金済み資金がないため取り消しの資金回収が不要である。精算可能額として確定し
 -- 出金後に生じた通常の返金・チャージバックは、運営が負担し、クリエイターからの相殺・回収処理は持たない。
 
-CREATE TABLE kyc_verification (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  subject_account_id UUID NOT NULL REFERENCES account(id),
-  target_type TEXT NOT NULL CHECK (target_type IN ('fixed_content','service_engagement')), -- service_engagementはkindでs1/s2を区別する（別々のtarget_typeにしない）
-  target_ref UUID NOT NULL,
-  purpose TEXT NOT NULL, -- 年齢確認 / 本人確認 / 資格確認 等。法務が承認した対象単位の設定に対応
-  method TEXT NOT NULL DEFAULT 'in_house' CHECK (method IN ('in_house','vendor')), -- Diditを使う場合は'vendor'。KYC不要のMVPではレコードを作成しない
-  vendor TEXT, -- method='vendor'のときだけ設定する。初期候補は'Didit'
-  vendor_reference_token TEXT, -- Didit Session ID等の照会・削除用トークン。削除成功後にNULLへ更新し、書類原本は保持しない
-  reviewed_by_account_id UUID REFERENCES account(id), -- method='in_house'のとき、目視判定したadminアカウント
-  result TEXT NOT NULL DEFAULT 'pending' CHECK (result IN ('pending','pass','fail')),
-  decided_at TIMESTAMPTZ,
-  retention_expires_at TIMESTAMPTZ NOT NULL, -- 対象目的に必要な期間だけ保持し、期限到達で自動削除
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
--- 購入・保有・譲渡・アカウント作成にはKYC・年齢確認を要求しない（全年齢対応。構想の不変条件）。
--- account.statusや証票の取得可否と連動させない。
--- Diditを使う場合、本人確認書類そのものはこのテーブルにも他の永続テーブルにも、自社アップロード領域にも
--- 保存しない。Didit Sessionの削除成功後はvendor_reference_tokenもNULLへ更新する（→ セキュリティ）。
--- 外部ベンダーがいずれも採用できず自社確認へ切り替える場合だけ、別途承認済みの短期一時領域を設ける。
--- target_refはtarget_typeによって参照先テーブルが変わるポリモーフィックな参照であり、DBの外部キー制約では
--- 整合性を保証しない（意図的な設計判断）。参照先の存在確認はアプリケーション層で行う。
-
 CREATE TABLE attribute_share_consent (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_account_id UUID NOT NULL REFERENCES account(id),
@@ -448,8 +421,7 @@ CREATE TABLE moderation_report (
   resolved_at TIMESTAMPTZ
 );
 CREATE INDEX idx_moderation_target ON moderation_report (target_type, target_ref);
--- target_refはtarget_typeによって参照先テーブルが変わるポリモーフィックな参照（kyc_verification.target_refと
--- 同じ設計判断）。通報者情報は調査担当以外に開示しない（→ セキュリティ）。
+-- target_refはtarget_typeによって参照先テーブルが変わるポリモーフィックな参照。通報者情報は調査担当以外に開示しない（→ セキュリティ）。
 
 CREATE TABLE audit_log_entry (
   id BIGSERIAL PRIMARY KEY,
@@ -463,7 +435,7 @@ CREATE TABLE audit_log_entry (
 );
 CREATE INDEX idx_audit_target ON audit_log_entry (target_type, target_ref);
 -- アプリケーションのDB接続ロールにUPDATE/DELETE権限を与えず、追記専用を権限設定で担保する。
--- ハッシュチェーン等の改ざん検知基盤は当面作らない（→ 決定ログ）。まずは同意・KYC判定・台帳記帳・
+-- ハッシュチェーン等の改ざん検知基盤は当面作らない（→ 決定ログ）。まずは同意・台帳記帳・
 -- 証票状態遷移・運営操作を確実に記録することを、マネロン対策を含む安全管理の土台とする。
 -- 購入時の利用規約同意、クリエイター利用規約同意、プログラム終了の起票・確定は、規約の文書版、同意または
 -- 操作時刻、actor_account_idをdetailに含めて記録する。
@@ -507,8 +479,6 @@ CREATE INDEX idx_audit_target ON audit_log_entry (target_type, target_ref);
   クリエイターの匿名条件確認・最終応諾が完了してから証票発行に進める。`track='vip'` はこの経由を必要としない。
 - `concierge_message` は、`concierge_case.status='anonymous_outreach'` の間、`contains_identifying_info=true`
   の行を配信対象から除外する。この判定はアプリケーション層の自動チェックが行い、DB制約では表現しない。
-- `kyc_verification` は `account.status` や証票の取得可否と連動させない。連動させると「購入・保有・譲渡に
-  KYC・年齢確認を要求しない」という構想の不変条件に違反する。
 - `attribute_share_consent` の `revoked_at` が立った項目は、集計ダッシュボードのクエリで必ず除外する。
 - `certificate_event` と `audit_log_entry` は追記専用とし、更新・削除を行わない。証票の現在状態は
   `certificate` テーブルの派生であり、来歴の唯一の正本は `certificate_event` である。
@@ -516,6 +486,6 @@ CREATE INDEX idx_audit_target ON audit_log_entry (target_type, target_ref);
 ## 保存しないもの
 
 - 法的氏名、住所、生年月日、電話番号、個人メールアドレス、カード情報、銀行口座情報、本人確認書類の原本。
-- 人種・民族、宗教、政治的信条、病歴、障害、性的指向など、[属性開示・条件付き本人確認](../concept/foundation/identity-disclosure.md)
+- 人種・民族、宗教、政治的信条、病歴、障害、性的指向など、[属性開示・決済事業者確認](../concept/foundation/identity-disclosure.md)
   の「共有しない情報」に列挙された属性カテゴリ。
-- 前保有者の支援額・属性・メッセージ・KYC結果（譲渡時に新保有者へ引き継がない項目）。
+- 前保有者の支援額・属性・メッセージ（譲渡時に新保有者へ引き継がない項目）。
