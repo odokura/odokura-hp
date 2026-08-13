@@ -56,6 +56,7 @@ draft: true
 | creator_staff_member | クリエイターがオーナー以外に許可したスタッフの最小権限アクセス | — |
 | creator_staff_permission | スタッフに付与した列挙済み操作権限 | — |
 | issuance_program | クリエイター×ランクごとの発行上限・価格モード | — |
+| public_entry_link | 公開中の有料発行プログラム一件を指す外部案内リンク。生トークンは保存せず、ハッシュ・状態・期限・取消時刻を持つ | — |
 | issuance_reservation | 一次発行の15分仮押さえ | — |
 | certificate | 証票本体。番号・ランク・現保有者・状態・証票支援累計額 | 引き継ぐ |
 | certificate_event | 証票の来歴（発行・譲渡・継続・回収・終了・アーカイブ）。追記専用 | 公開可能な部分だけ引き継ぐ |
@@ -203,6 +204,22 @@ CREATE TABLE issuance_program (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (creator_id, rank)
 );
+
+CREATE TABLE public_entry_link (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  program_id UUID NOT NULL REFERENCES issuance_program(id),
+  token_hash CHAR(64) NOT NULL UNIQUE, -- 32byte以上のランダムな生トークンをSHA-256でハッシュした16進表現。生トークンは保存・ログ出力しない
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','revoked')),
+  expires_at TIMESTAMPTZ,
+  created_by_account_id UUID NOT NULL REFERENCES account(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  revoked_at TIMESTAMPTZ,
+  CHECK ((status = 'active' AND revoked_at IS NULL) OR (status = 'revoked' AND revoked_at IS NOT NULL))
+);
+CREATE UNIQUE INDEX idx_public_entry_link_one_active_per_program
+  ON public_entry_link (program_id) WHERE status = 'active';
+-- Public read modelは、リンクがactiveかつ期限内、issuance_programがopenかつ有料ランク、creator_profileがactiveの
+-- 場合だけ対象限定の事実を返す。それ以外は同じ404とし、状態、対象ID、クリエイターの存在を区別して返さない。
 
 CREATE TABLE issuance_reservation (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
