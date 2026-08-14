@@ -16,6 +16,8 @@ draft: true
 | アカウント | ログイン主体と利用状態 | 本人は自分の設定、adminは必要な停止だけ | 状態変更は監査する |
 | プロフィール | 本人が入力した許可済み属性 | 本人だけが変更。クリエイターは同意済み項目だけ読取 | 値変更は開示先を増やさない |
 | クリエイター・プログラム | クリエイターと発行するXXGGLL | 所属クリエイターと許可済みスタッフ。Opsは審査・停止 | 公開・終了は監査する |
+| 関係時点スナップショット | 現保有者の取得日時と、その時点で正規連携元から確認したXフォロワー数 | 本人は自分の記録、Creatorは認可済み集計、Opsは必要時だけ | 取得時点の追記後は上書きしない。取得失敗を推定値で補完しない |
+| グッズ購入登録 | XXGGLL発行コードで本人が登録した対象商品、購入元、登録日時 | 本人と認可済み集計だけ。譲渡先へ引き継がない | コードは一回限り。生コードを保存・記録しない |
 | 証票・来歴 | 誰がどのXXGGLLを保有し、どの状態になったか | 保有者は自分の分、クリエイターは匿名集計、adminは運用範囲 | 現在状態と来歴を同時に記録する |
 | 決済試行・台帳 | 購入要求、外部決済、当事者別の金額 | 支払者は自分の記録、クリエイターは自分の報酬、adminは全件 | 取消しは新しい行で記録し、確定済み行を書き換えない |
 | 出金申請・配分 | クリエイターの出金要求と予約済み報酬 | クリエイター本人とadmin | 同じ報酬を複数申請へ使わない |
@@ -266,6 +268,59 @@ CREATE TABLE certificate_event (
   detail JSONB
 );
 -- 証票の来歴（公開可能な部分）はこのテーブルから再構成する。前保有者の支援額・属性は含めない。
+
+CREATE TABLE relationship_acquisition (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  certificate_id UUID NOT NULL REFERENCES certificate(id),
+  acquisition_event_id BIGINT NOT NULL UNIQUE REFERENCES certificate_event(id),
+  holder_account_id UUID NOT NULL REFERENCES account(id),
+  acquired_at TIMESTAMPTZ NOT NULL,
+  x_follower_count BIGINT CHECK (x_follower_count >= 0),
+  x_snapshot_observed_at TIMESTAMPTZ,
+  x_snapshot_status TEXT NOT NULL CHECK (x_snapshot_status IN ('recorded','unavailable')),
+  CHECK (
+    (x_snapshot_status = 'recorded' AND x_follower_count IS NOT NULL AND x_snapshot_observed_at IS NOT NULL
+      AND x_snapshot_observed_at <= acquired_at AND x_snapshot_observed_at >= acquired_at - INTERVAL '5 minutes') OR
+    (x_snapshot_status = 'unavailable' AND x_follower_count IS NULL AND x_snapshot_observed_at IS NULL)
+  )
+);
+-- Xフォロワー数はDBトランザクションを開く前に短いタイムアウトで正規連携元から取得する。発行または譲渡は
+-- 連携失敗で止めず、確定と同じDBトランザクションでrelationship_acquisitionをrecordedまたはunavailableとして
+-- 一度だけ追記する。推定値・手入力値・5分より古い値を使わない。
+
+CREATE TABLE goods_registration_code (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  program_id UUID NOT NULL REFERENCES issuance_program(id),
+  code_hash TEXT NOT NULL UNIQUE,
+  purchase_reference_hash TEXT NOT NULL UNIQUE,
+  product_label TEXT NOT NULL,
+  purchase_source TEXT NOT NULL,
+  purchase_amount NUMERIC(14,2),
+  purchase_currency CHAR(3),
+  purchase_confirmed_at TIMESTAMPTZ NOT NULL,
+  expires_at TIMESTAMPTZ,
+  issued_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (
+    (purchase_amount IS NULL AND purchase_currency IS NULL) OR
+    (purchase_amount IS NOT NULL AND purchase_currency IS NOT NULL
+      AND purchase_amount >= 0 AND purchase_currency ~ '^[A-Z]{3}$')
+  )
+);
+-- purchase_amountとpurchase_currencyは正規販売元が購入確定時に提供した場合だけ保存する。
+-- 片方だけを保存せず、取得できない場合は両方NULLとして来歴だけへ反映し、支払額グラフには合算しない。
+
+CREATE TABLE goods_purchase_record (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code_id UUID NOT NULL UNIQUE REFERENCES goods_registration_code(id),
+  certificate_id UUID NOT NULL REFERENCES certificate(id),
+  holder_account_id UUID NOT NULL REFERENCES account(id),
+  registered_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_goods_purchase_holder ON goods_purchase_record (holder_account_id, registered_at DESC);
+-- 正規販売元から購入確定と注文参照を受領し、注文参照のハッシュが未登録の場合だけコードを発行する。
+-- 登録時はcertificate.current_holder_account_idとholder_account_id、program_idの一致を同じトランザクションで
+-- 確認する。入力された生コードはハッシュ照合後に破棄し、DB・アクセスログ・監査ログへ保存しない。
+-- 購入履歴はholder_account_idに属する個人記録であり、XXGGLLの譲渡先へ引き継がない。
 
 CREATE TABLE concierge_case (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
