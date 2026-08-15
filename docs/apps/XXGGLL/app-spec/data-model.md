@@ -13,16 +13,16 @@ draft: true
 
 | 記録 | 何を表すか | 誰が確認・変更できるか | 変更の扱い |
 | --- | --- | --- | --- |
-| アカウント | ログイン主体と利用状態 | 本人は自分の設定、adminは必要な停止だけ | 状態変更は監査する |
+| アカウント | ログイン主体と利用状態 | 本人は自分の設定、adminは必要な停止だけ | `closed`への遷移は本人の明示確認と再認証を要求し、状態変更・セッション失効・個人情報の匿名化を監査する |
 | Opsパスキー・セッション | adminのWebAuthn公開鍵、短期challenge、通常ログインと分離したOpsセッション | 登録済みadminだけがパスキーでOps認証。credentialの付与・全喪失後の復旧は運用手順だけ | 秘密鍵・生体情報・生challenge・生セッションを保存しない。登録・失効・認証は監査する |
-| プロフィール | 本人が入力した許可済み属性 | 本人だけが変更。クリエイターは同意済み項目だけ読取 | 値変更は開示先を増やさない |
+| プロフィール | 本人が入力した許可済み属性と、発行者への共通公開状態 | 本人だけが変更。現在の保有者について発行者ownerは自動開示項目と有効な任意プロフィールだけ読取 | 値変更は公開フラグを有効にしない限り任意プロフィールを開示しない |
 | クリエイター・プログラム | クリエイターと発行するXXGGLL | 対象Creatorのownerと許可済みstaff。Opsは審査・停止 | 公開・終了は監査する |
-| 関係時点スナップショット | 現保有者の取得日時と、その時点で正規連携元から確認したXフォロワー数 | 本人は自分の記録、Creatorは認可済み集計、Opsは必要時だけ | 取得時点の追記後は上書きしない。取得失敗を推定値で補完しない |
+| 関係時点スナップショット | 現保有者の取得日時、取得時購入額と、その時点で正規連携元から確認したXフォロワー数 | 本人は自分の記録、Creatorは認可済み集計または当該現在保有者の限定項目、Opsは必要時だけ | 取得時点の追記後は上書きしない。取得失敗を推定値で補完しない |
 | グッズ購入登録 | XXGGLL発行コードで本人が登録した対象商品、購入元、登録日時 | 本人と認可済み集計だけ。譲渡先へ引き継がない | コードは一回限り。生コードを保存・記録しない |
 | 証票・来歴 | 誰がどのXXGGLLを保有し、どの状態になったか | 保有者は自分の分、クリエイターは匿名集計、adminは運用範囲 | 現在状態と来歴を同時に記録する |
 | 決済試行・台帳 | 購入要求、外部決済、当事者別の金額 | 支払者は自分の記録、クリエイターは自分の報酬、adminは全件 | 取消しは新しい行で記録し、確定済み行を書き換えない |
 | 出金申請・配分 | クリエイターの出金要求と予約済み報酬 | クリエイター本人とadmin | 同じ報酬を複数申請へ使わない |
-| 属性開示同意 | 本人がどの項目をどのクリエイターへ開示するか | 本人だけが同意・撤回。クリエイターは有効な同意だけ読取 | 譲渡・失効・終了・撤回で即時終了する |
+| 発行者向けプロフィール公開 | 本人が任意プロフィールを保有中の全発行者へ公開するか | 本人だけが有効・無効を変更。発行者ownerは現在保有者についてだけ読取 | フラグ無効化で任意プロフィールを即時終了し、現在保有者でなくなると自動開示を含めて終了する |
 | 追加商品・個別サービス | XXGGLLとは別の申込み・契約・決済 | 契約当事者、対象Creatorのowner・staff、admin | 証票の終了と独立して履行・取消・返金する |
 | 監査ログ | 重大操作の証跡 | adminは読取のみ | 追記専用。更新・削除しない |
 
@@ -40,7 +40,7 @@ draft: true
 
 | 記録 | 許可するキー | 禁止する値 | 検証 |
 | --- | --- | --- | --- |
-| `account_profile.field_values` | `display_name`、`age_range`、`region`、`occupation`、`interests`、`support_reason`、`activity_history`、`preferred_name`、`free_text` | 住所、電話番号、メールアドレス、SNS ID、生年月日、金融情報、要配慮個人情報 | キー、型、最大長、私的連絡先パターンをサーバーで検証する |
+| `account_profile.field_values` | `display_name`（アカウント名）、`origin_country_or_region`（出身国・地域）、`age_range`、`occupation`、`interests`、`support_reason`、`activity_history`、`preferred_name`、`free_text` | 住所、電話番号、メールアドレス、SNS ID、生年月日、金融情報、要配慮個人情報 | キー、型、最大長、私的連絡先パターンをサーバーで検証する |
 | `additional_offering.terms` | 内容、価格、数量上限、申込期限、取消・返金条件 | 購入者の連絡先・本人確認情報 | 公開前に必須キー・型を検証する |
 | `service_engagement.terms` | 提供内容、対象人数、回数、時間、期限、連絡手段、価格、変更・取消・返金条件、禁止事項、利用権 | 当事者以外の個人情報、決済カード・口座情報 | 契約確定前に必須キー・型を検証する。確定後は内容を上書きしない |
 | `audit_log_entry.detail` | 操作ごとに[コントロール仕様](./controls.md)の「監査ログの必須内容」で定めた識別子・結果 | メールアドレス、メッセージ本文、秘密値、カード・口座情報、本人確認書類 | 操作別スキーマをサーバーで検証する |
@@ -58,7 +58,7 @@ draft: true
 | admin_passkey_enrollment | Railway運用が発行する初回・復旧登録用の一回限りの事前認可 | 引き継がない |
 | admin_webauthn_challenge | Opsのサインイン・再認証・初回登録・既存adminのcredential追加に使う短期challengeのハッシュ | 引き継がない |
 | admin_session | 通常ログインと分離した短期Opsセッション | 引き継がない |
-| account_profile | 利用者がプロフィール画面で入力する許可済み項目。値の保有と開示同意を分離する | 引き継がない |
+| account_profile | 利用者がプロフィール画面で入力する許可済み項目と発行者への共通公開状態。値の保有と公開状態を分離する | 引き継がない |
 | creator_profile | クリエイター。オーナーアカウントへの参照、Stripe Connected Accountと精算可否を持つ | — |
 | creator_staff_member | クリエイターがオーナー以外に許可したスタッフの最小権限アクセス | — |
 | creator_staff_permission | スタッフに付与した列挙済み操作権限 | — |
@@ -74,7 +74,7 @@ draft: true
 | payout_allocation | 出金申請が予約・精算する台帳行と金額 | 引き継がない |
 | stripe_webhook_event | Stripe WebhookのイベントID・種別・処理結果。本文は保存しない | — |
 | payment_attempt | 購入要求、冪等キー、Stripe Payment Intent、決済状態 | — |
-| attribute_share_consent | 項目単位の属性共有同意・撤回 | 引き継がない |
+| profile_creator_disclosure_event | 発行者への共通プロフィール公開フラグの有効化・無効化履歴 | 引き継がない |
 | support_expression | 現保有者が証票ごとに保存する応援表現とクリエイターへの明示共有設定 | 引き継がない |
 | secondary_listing | 前保有者による再発行申込みと、新保有者に対する在庫仮押さえ | — |
 | waitlist_entry | 待機リスト登録と簡易重複防止用の指紋 | — |
@@ -178,6 +178,13 @@ CREATE TABLE admin_passkey_enrollment (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- `closed`は利用者のログイン・再開を受け付けない終端状態とする。
+-- 閉鎖確定は、現在保有中の有料XXGGLL、処理中決済、未解決のサポート・調査状態がないことを
+-- 同じサーバー側トランザクションで確認し、確認文と直近の再認証を検証してから実行する。
+-- 閉鎖時は通常セッションと同accountのadmin_sessionを全て失効し、account_profileの任意プロフィールを
+-- 即時に開示対象から除外する。台帳、certificate_event、audit_log_entryは削除・更新せず、
+-- 保持が必要な記録と個人情報の匿名化範囲は運用・法務の保持方針に従う。
+
 CREATE TABLE admin_webauthn_challenge (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   account_id UUID REFERENCES account(id),
@@ -215,9 +222,14 @@ CREATE TABLE admin_session (
 CREATE TABLE account_profile (
   account_id UUID PRIMARY KEY REFERENCES account(id),
   field_values JSONB NOT NULL DEFAULT '{}'::jsonb, -- 許可済みのプロフィール項目だけを保持する。連絡先・正確な住所・生年月日等は保存しない
+  creator_disclosure_enabled BOOLEAN NOT NULL DEFAULT false, -- trueの間だけ任意プロフィールを、現在保有する全XXGGLLの発行者へ開示する
+  creator_disclosure_version TEXT, -- 有効化または無効化時に確認した表示文面の版
+  creator_disclosure_changed_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
--- プロフィールの値は利用者本人だけが更新できる。クリエイターへの表示はattribute_share_consentに有効なfield_keyだけに限定する。
+-- プロフィールの値と共通公開フラグは利用者本人だけが更新できる。発行者ownerへの表示は、現在保有者について
+-- display_name・origin_country_or_regionを常に、その他の入力値をcreator_disclosure_enabled=trueのときだけに限定する。
+-- 有料XXGGLLの取得確定前にdisplay_nameとorigin_country_or_regionが入力済みであることをサーバーで検証する。値は自己申告であり、本人確認には使わない。
 
 CREATE TABLE creator_profile (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -343,6 +355,8 @@ CREATE TABLE relationship_acquisition (
   acquisition_event_id BIGINT NOT NULL UNIQUE REFERENCES certificate_event(id),
   holder_account_id UUID NOT NULL REFERENCES account(id),
   acquired_at TIMESTAMPTZ NOT NULL,
+  acquisition_purchase_amount NUMERIC(14,2) NOT NULL CHECK (acquisition_purchase_amount > 0), -- 取得確認で確定した当該XXGGLLの価格。税・手数料・取得後の継続支援・追加決済は含めない
+  acquisition_purchase_currency CHAR(3) NOT NULL DEFAULT 'JPY' CHECK (acquisition_purchase_currency = 'JPY'),
   x_follower_count BIGINT CHECK (x_follower_count >= 0),
   x_snapshot_observed_at TIMESTAMPTZ,
   x_snapshot_status TEXT NOT NULL CHECK (x_snapshot_status IN ('recorded','unavailable')),
@@ -354,7 +368,8 @@ CREATE TABLE relationship_acquisition (
 );
 -- Xフォロワー数はDBトランザクションを開く前に短いタイムアウトで正規連携元から取得する。発行または譲渡は
 -- 連携失敗で止めず、確定と同じDBトランザクションでrelationship_acquisitionをrecordedまたはunavailableとして
--- 一度だけ追記する。推定値・手入力値・5分より古い値を使わない。
+-- 一度だけ追記する。acquisition_purchase_amountは取得確認時のXXGGLL価格を同じトランザクションでスナップショットし、
+-- 決済手数料、税、継続支援、証票支援、グッズ購入、他XXGGLLの金額を混在させない。推定値・手入力値・5分より古いX値を使わない。
 
 CREATE TABLE goods_registration_code (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -595,27 +610,21 @@ CREATE UNIQUE INDEX idx_payout_allocation_single_open
 -- 出金申請前に返金が発生した場合は、送金済み資金がないため取り消しの資金回収が不要である。精算可能額として確定し
 -- 出金後に生じた通常の返金・チャージバックは、運営が負担し、クリエイターからの相殺・回収処理は持たない。
 
-CREATE TABLE attribute_share_consent (
+CREATE TABLE profile_creator_disclosure_event (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_account_id UUID NOT NULL REFERENCES account(id),
-  creator_id UUID NOT NULL REFERENCES creator_profile(id),
-  field_key TEXT NOT NULL, -- display_name / age_range / region / occupation / interests / support_reason / free_text 等
-  consent_version TEXT NOT NULL, -- 同意文面の版
-  consented_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  revoked_at TIMESTAMPTZ,
-  revocation_reason TEXT CHECK (revoked_at IS NULL OR revocation_reason IN ('user','transfer','expiry','stop','account_stop')),
-  UNIQUE (user_account_id, creator_id, field_key, consented_at)
+  account_id UUID NOT NULL REFERENCES account(id),
+  enabled BOOLEAN NOT NULL,
+  disclosure_version TEXT NOT NULL,
+  changed_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE UNIQUE INDEX idx_consent_single_active
-  ON attribute_share_consent (user_account_id, creator_id, field_key) WHERE revoked_at IS NULL;
--- 同一項目について、同時に有効な同意行を1件だけに制限する（secondary_listingと同じ部分ユニークインデックスの
--- パターン）。再同意する場合は、先に旧行のrevoked_atを立ててから新しい行を追加する。
--- revoked_atが立った項目は、クリエイター向け集計ダッシュボードの対象から即時除外する。
--- revocation_reason='user'は本人撤回、それ以外は譲渡・失効・停止によるシステム終了を表す。
--- 開示資格は「同じcreator_idの有効な有料証票を1件以上保有すること」とする。特定の証票へ同意を紐づけない。
--- 譲渡・失効・終了により有効な有料証票が0件になった時点で、当該creator_idへの全項目をrevoked_atで一括終了する（アプリケーション層）。
--- profileの値を更新しても、開示先は自動で追加しない。利用者がプロフィール画面で項目・開示先ごとに明示して初めて表示対象になる。
--- 開示先creator_idは、当該利用者が保有中の有料XXGGLLを持つクリエイターだけに限定する。失効・終了時もアプリケーション層でrevoked_atを設定する。
+CREATE INDEX idx_profile_creator_disclosure_event_account_changed
+  ON profile_creator_disclosure_event (account_id, changed_at DESC);
+-- このテーブルは追記専用の変更履歴である。現在状態はaccount_profile.creator_disclosure_enabledを参照する。
+-- 開示資格は「当該certificateのcurrent_holder_account_idがaccount_idであり、当該issuance_programのcreator_profile.owner_account_idが
+-- 読取り要求者であること」とする。特定の証票へ同意を紐づけず、Creatorごとの同意・項目ごとの同意は保持しない。
+-- アカウント名（display_name）・出身国地域（origin_country_or_region）は公開フラグにかかわらず返す。他のfield_valuesは
+-- creator_disclosure_enabled=trueの場合だけ返す。現在保有者でなくなった時点で、全ての値をその証票の発行者への読取りから除外する。
+-- 購入額は保存したプロフィール値やCreator報酬ではなく、当該current_holder_account_idとcertificate_idのrelationship_acquisition.acquisition_purchase_amountから返す。
 
 CREATE TABLE support_expression (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -747,7 +756,7 @@ CREATE INDEX idx_audit_target ON audit_log_entry (target_type, target_ref);
   。一次発行の15分仮押さえは `issuance_reservation` が担い、
   決済成功時にだけ実際の `certificate` 行（serial_no）を発行する。
 - `secondary_listing` の部分ユニークインデックスにより、同一証票の二重再発行・二重成立を防ぐ。
-  `attribute_share_consent` も同じパターンの部分ユニークインデックスで、同一項目の同時有効行を1件に制限する。
+  `profile_creator_disclosure_event` は公開フラグの追記履歴であり、現在状態は`account_profile`に1行だけ保持する。発行者向け読取りは、現在のowner権限、`certificate.current_holder_account_id`、公開フラグを同一要求で再照合する。
 - `stripe_webhook_event.stripe_event_id` の主キーにより、署名検証済みのStripeイベントを同じイベントIDで
   再処理しない。Accounts v2のrecipient capabilityイベントは、対象の`creator_profile`が存在する場合だけ
   `stripe_payouts_enabled_at`を更新する。Webhook本文・カード情報・口座情報は保存しない。
@@ -777,7 +786,9 @@ CREATE INDEX idx_audit_target ON audit_log_entry (target_type, target_ref);
   クリエイターの匿名条件確認・最終応諾が完了してから証票発行に進める。`track='vip'` はこの経由を必要としない。
 - `concierge_message` は、`concierge_case.status='anonymous_outreach'` の間、`contains_identifying_info=true`
   の行を配信対象から除外する。この判定はアプリケーション層の自動チェックが行い、DB制約では表現しない。
-- `attribute_share_consent` の `revoked_at` が立った項目は、集計ダッシュボードのクエリで必ず除外する。
+- `account_profile.creator_disclosure_enabled=false`の任意プロフィールは、発行者向けの全クエリから必ず除外する。アカウント名・出身国地域・取得時購入額も、要求時点で現在保有者でなければ返さない。
+- `account.status='closed'`のaccountは新しい通常セッション、Opsセッション、認証方法の追加、決済、保有XXGGLLの取得・継続を開始できない。閉鎖確定とセッション失効は同じトランザクションで行い、再読み込み・再送による二重閉鎖は冪等に処理する。
+- `account.status`を`closed`へ変更する前に、現在保有中の有料XXGGLL、処理中決済、未解決ケースをサーバー側で確認する。条件を満たさない場合は状態を変更せず、設定画面へ対象と復帰方法を返す。`closed`から`active`への利用者操作による復帰は許可しない。
 - `certificate_event` と `audit_log_entry` は追記専用とし、更新・削除を行わない。証票の現在状態は
   `certificate` テーブルの派生であり、来歴の唯一の正本は `certificate_event` である。
 
