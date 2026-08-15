@@ -47,6 +47,7 @@ draft: true
 | F-32 | FanのHomeは、Creatorごとに一次支援、継続支援、証票支援、確認済み商品購入の支払額を月別グラフ、累計、内訳、来歴として表示する。税・手数料、二次流通、再発行クレジット、返金・取消しを区別し、未確認額、手入力額、推定額を合算しない | 高 | [XXGGLLの流れ](./public-flow.md)、[一般ユーザーとの関係](../concept/general/relationship-general.md) |
 | F-33 | Fanの支援実績と保有期間をユーザーランク判定へ反映し、本人へ反映項目と現在段階を表示する。XXGGLLランク・ユーザーランク・クリエイターランクを混同せず、VIP・ExtraVIPは自動昇格させず運営審査・招待・本人承諾を必須とする | 高 | [ランク・発行上限](../concept/foundation/ranks.md) |
 | F-34 | adminは、この開発PCでloopbackにだけbindした開発サーバーを`localhost`、`127.0.0.1`または`::1`から開いた場合に限り、Opsで対象ユーザーを一人選び、そのユーザーに表示されるHome、保有XXGGLL、プロフィール、設定状態、Creator管理対象を読み取り専用で確認できる。Railway、公開dev、prod、LAN内の別端末ではadmin本人にもOpsページ・管理APIを`404`とし、ユーザー本人のセッションへ切り替えず、詳細閲覧を監査ログへ記録し、秘密値とユーザー操作を提供しない | 高 | [UX](./ux.md)、[コントロール](./controls.md) |
+| F-35 | adminは、この開発PCだけで対象Creatorを一人選び、そのCreatorの概要、発行XXGGLL、匿名集計、収益要約、owner・staffアクセスをOps専用の読み取り専用ビューで確認できる。Creator本人のセッションや所属権限へ切り替えず、Creator向け更新APIへadminバイパスを追加しない。個人ファン一覧、未同意属性、Stripe Connected Account ID、銀行口座、本人確認書類、秘密値、Creator操作を提供せず、詳細閲覧を監査する | 高 | [UX](./ux.md)、[コントロール](./controls.md) |
 
 ### 現在の実装ブロッカー
 
@@ -102,6 +103,7 @@ adminは、台帳・返金の確認、通報対応、VIPコンシェルジュ対
 - Studioのownerとstaffは同じmembership/permissionをナビゲーション、ルート、APIで使用する。audienceは匿名集計を既定とし、個人支援者一覧・匿名識別子検索を提供しない。
 - Opsはadmin以外に存在を示さず、優先キューと一件単位の操作へ分離する。旧`/admin`の全操作フォームを一画面へ残さない。
 - Opsのユーザービューは対象を一人ずつ開き、Home、保有XXGGLL、プロフィール、設定状態、Creator管理対象を読み取り専用で表示する。ユーザーセッションの発行・差し替え、ユーザー向け更新APIのadminバイパス、秘密値の表示を行わず、詳細閲覧を監査する。
+- OpsのCreatorビューは対象を一人ずつ開き、Studio相当の概要、発行XXGGLL、匿名集計、収益要約、owner・staffアクセスを読み取り専用で表示する。Creatorセッションや所属権限の発行・差し替え、Creator向け更新APIのadminバイパス、個人ファン一覧、決済・本人確認の秘密値を提供せず、詳細閲覧を監査する。
 - Opsページ、旧`/admin`配下、`/api/admin`配下は、この開発PCでloopbackにだけbindしたdevelopment runtimeからの要求かつadminセッションの場合だけ利用できる。Railway、公開dev、prod、LAN内の別端末、loopback以外のHost、Host偽装を伴うproduction runtimeでは一律`404`を返す。公開環境の一般セッション応答はadmin権限とOps導線を露出しない。
 - 廃止・統合対象の旧ルートは、主ナビ、主要リンク、決済復帰先、APIから到達不能であり、ファイルを残したまま非表示にするだけで完了としない。
 - 一般ユーザーが、一次発行・二次流通いずれの経路でも有料証票をクリエイター承認なしに購入でき、
