@@ -14,6 +14,7 @@ draft: true
 | 記録 | 何を表すか | 誰が確認・変更できるか | 変更の扱い |
 | --- | --- | --- | --- |
 | アカウント | ログイン主体と利用状態 | 本人は自分の設定、adminは必要な停止だけ | 状態変更は監査する |
+| Opsパスキー・セッション | adminのWebAuthn公開鍵、短期challenge、通常ログインと分離したOpsセッション | 登録済みadminだけがパスキーでOps認証。credentialの付与・全喪失後の復旧は運用手順だけ | 秘密鍵・生体情報・生challenge・生セッションを保存しない。登録・失効・認証は監査する |
 | プロフィール | 本人が入力した許可済み属性 | 本人だけが変更。クリエイターは同意済み項目だけ読取 | 値変更は開示先を増やさない |
 | クリエイター・プログラム | クリエイターと発行するXXGGLL | 対象Creatorのownerと許可済みstaff。Opsは審査・停止 | 公開・終了は監査する |
 | 関係時点スナップショット | 現保有者の取得日時と、その時点で正規連携元から確認したXフォロワー数 | 本人は自分の記録、Creatorは認可済み集計、Opsは必要時だけ | 取得時点の追記後は上書きしない。取得失敗を推定値で補完しない |
@@ -53,6 +54,10 @@ draft: true
 | auth_identity | メール認証・OAuth等のログイン識別子 | 引き継がない |
 | auth_token | メール確認・パスワード再設定・OAuth stateの短期トークン | 引き継がない |
 | auth_session | ログイン中の端末セッション | 引き継がない |
+| admin_passkey_credential | adminのWebAuthn公開鍵とcredentialの利用状態 | 引き継がない |
+| admin_passkey_enrollment | Railway運用が発行する初回・復旧登録用の一回限りの事前認可 | 引き継がない |
+| admin_webauthn_challenge | Opsのサインイン・再認証・初回登録・既存adminのcredential追加に使う短期challengeのハッシュ | 引き継がない |
+| admin_session | 通常ログインと分離した短期Opsセッション | 引き継がない |
 | account_profile | 利用者がプロフィール画面で入力する許可済み項目。値の保有と開示同意を分離する | 引き継がない |
 | creator_profile | クリエイター。オーナーアカウントへの参照、Stripe Connected Accountと精算可否を持つ | — |
 | creator_staff_member | クリエイターがオーナー以外に許可したスタッフの最小権限アクセス | — |
@@ -143,6 +148,68 @@ CREATE TABLE auth_session (
 );
 -- ログイン・通知用の連絡先はaccount_contactに分離する。パスワード、短期トークン、セッションはハッシュだけを保存する。
 -- アカウント作成・証票の購入・保有に年齢制限はない（全年齢対応。生年月日・年齢は保存しない）。
+
+CREATE TABLE admin_passkey_credential (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id UUID NOT NULL REFERENCES account(id),
+  credential_id BYTEA NOT NULL UNIQUE,
+  public_key BYTEA NOT NULL,
+  rp_id TEXT NOT NULL,
+  sign_count BIGINT NOT NULL DEFAULT 0 CHECK (sign_count >= 0),
+  backup_eligible BOOLEAN NOT NULL DEFAULT false,
+  backup_state BOOLEAN NOT NULL DEFAULT false,
+  transports TEXT[] NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_used_at TIMESTAMPTZ,
+  revoked_at TIMESTAMPTZ
+);
+
+CREATE TABLE admin_passkey_enrollment (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id UUID NOT NULL REFERENCES account(id),
+  token_hash TEXT NOT NULL UNIQUE,
+  browser_binding_hash TEXT,
+  issued_by_railway_principal TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  token_consumed_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+  revoked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE admin_webauthn_challenge (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id UUID REFERENCES account(id),
+  enrollment_id UUID REFERENCES admin_passkey_enrollment(id),
+  purpose TEXT NOT NULL CHECK (purpose IN ('sign_in','reauthenticate','enroll','credential_add')),
+  challenge_hash TEXT NOT NULL UNIQUE,
+  browser_binding_hash TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  consumed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (
+    (purpose = 'enroll' AND enrollment_id IS NOT NULL)
+    OR (purpose <> 'enroll' AND enrollment_id IS NULL)
+  )
+);
+
+CREATE TABLE admin_session (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id UUID NOT NULL REFERENCES account(id),
+  credential_id UUID NOT NULL REFERENCES admin_passkey_credential(id),
+  session_hash TEXT NOT NULL UNIQUE,
+  reauthenticated_at TIMESTAMPTZ NOT NULL,
+  last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  revoked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- Ops専用。WebAuthnの秘密鍵・生体情報・生challenge・生セッションを保存しない。
+-- `admin_passkey_enrollment`はRailwayの認証済み運用手順だけが発行する。生トークンを保存せず、`token_consumed_at IS NULL`かつ有効期限内の一件だけを原子的に事前認可Cookieへ交換する。
+-- `purpose='enroll'`のchallengeは、有効な`enrollment_id`と同じaccount、開始ブラウザの事前認可Cookieを必須にする。登録成功時に`completed_at`を記録し、同じ登録記録を再利用しない。
+-- `purpose='credential_add'`のchallengeは既存Opsセッションのaccountに結び付け、登録開始・確定の双方で5分以内のOpsパスキー再認証を確認する。`enrollment_id`は使わない。
+-- 全Ops要求はadmin_session、account、admin_passkey_credentialを結合して、adminロール、各`revoked_at`、各有効期限を再照合する。credentialの失効、adminロールの解除、またはOpsログアウト時は、対応するadmin_sessionを同一トランザクションで全て失効する。
 
 CREATE TABLE account_profile (
   account_id UUID PRIMARY KEY REFERENCES account(id),

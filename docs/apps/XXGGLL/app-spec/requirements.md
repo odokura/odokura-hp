@@ -46,8 +46,11 @@ draft: true
 | F-31 | Publicの`/flow`は、Creatorの発行、Fanの個別リンク購入、取得時点の記録、過去の商品コード登録、Fan本人の支払額グラフ・来歴、ユーザーランク判定への反映、Creatorの匿名集計と次の活動判断を一方向の流れで説明する。すべてのPublicヘッダーから`XXGGLLの流れ`の1クリックで到達できる | 高 | [XXGGLLの流れ](./public-flow.md) |
 | F-32 | FanのHomeは、Creatorごとに一次支援、継続支援、証票支援、確認済み商品購入の支払額を月別グラフ、累計、内訳、来歴として表示する。税・手数料、二次流通、再発行クレジット、返金・取消しを区別し、未確認額、手入力額、推定額を合算しない | 高 | [XXGGLLの流れ](./public-flow.md)、[一般ユーザーとの関係](../concept/general/relationship-general.md) |
 | F-33 | Fanの支援実績と保有期間をユーザーランク判定へ反映し、本人へ反映項目と現在段階を表示する。XXGGLLランク・ユーザーランク・クリエイターランクを混同せず、VIP・ExtraVIPは自動昇格させず運営審査・招待・本人承諾を必須とする | 高 | [ランク・発行上限](../concept/foundation/ranks.md) |
-| F-34 | adminは、この開発PCでloopbackにだけbindした開発サーバーを`localhost`、`127.0.0.1`または`::1`から開いた場合に限り、Opsで対象ユーザーを一人選び、そのユーザーに表示されるHome、保有XXGGLL、プロフィール、設定状態、Creator管理対象を読み取り専用で確認できる。Railway、公開dev、prod、LAN内の別端末ではadmin本人にもOpsページ・管理APIを`404`とし、ユーザー本人のセッションへ切り替えず、詳細閲覧を監査ログへ記録し、秘密値とユーザー操作を提供しない | 高 | [UX](./ux.md)、[コントロール](./controls.md) |
-| F-35 | adminは、この開発PCだけで対象Creatorを一人選び、そのCreatorの概要、発行XXGGLL、匿名集計、収益要約、owner・staffアクセスをOps専用の読み取り専用ビューで確認できる。Creator本人のセッションや管理権限へ切り替えず、Creator向け更新APIへadminバイパスを追加しない。個人ファン一覧、未同意属性、Stripe Connected Account ID、銀行口座、本人確認書類、秘密値、Creator操作を提供せず、詳細閲覧を監査する | 高 | [UX](./ux.md)、[コントロール](./controls.md) |
+| F-34 | `ops_role='admin'`の運営担当者は、完全一致の`OPS_ORIGIN`とそのホスト名に固定した`OPS_RP_ID`で、利用者検証必須の登録済みスマートフォン等のパスキーにより通常ログインと分離された短期Opsセッションを取得した場合に限り、RailwayのOpsで対象ユーザーを一人選び、そのユーザーに表示されるHome、保有XXGGLL、プロフィール、設定状態、Creator管理対象を読み取り専用で確認できる。通常セッション、メール、パスワード、X OAuth、メール再設定、未登録・失効済みパスキーではOpsページ・管理APIを利用できず、ユーザー本人のセッションへ切り替えず、詳細閲覧を監査ログへ記録し、秘密値とユーザー操作を提供しない | 高 | [UX](./ux.md)、[セキュリティ](./security.md)、[コントロール](./controls.md) |
+| F-35 | adminは、F-34のOpsセッションでのみ対象Creatorを一人選び、そのCreatorの概要、発行XXGGLL、匿名集計、収益要約、owner・staffアクセスをOps専用の読み取り専用ビューで確認できる。Creator本人のセッションや管理権限へ切り替えず、Creator向け更新APIへadminバイパスを追加しない。個人ファン一覧、未同意属性、Stripe Connected Account ID、銀行口座、本人確認書類、秘密値、Creator操作を提供せず、詳細閲覧を監査する | 高 | [UX](./ux.md)、[セキュリティ](./security.md)、[コントロール](./controls.md) |
+| F-36 | OpsのブラウザはDB接続資格情報を受け取らず、Railway上のサーバーだけがプライベートネットワーク経由で本番PostgreSQLへ接続する。Ops用のパスキー認証開始以外の未認証Opsページ・管理APIは、adminアカウント、credential、失効理由を区別しない`404`とする | 高 | [アーキテクチャ](./architecture.md)、[セキュリティ](./security.md)、[コントロール](./controls.md) |
+| F-37 | adminによる返金、送金、強制失効、プログラム終了、既存adminのパスキー追加・削除は、5分以内に完了した専用Opsパスキーの再認証がある場合だけ確定できる。通常利用者のパスワード再認証では代替できず、パスキーの登録・失効・再認証・全喪失後の復旧を監査する | 高 | [セキュリティ](./security.md)、[コントロール](./controls.md)、[運用](./operations.md) |
+| F-38 | 最初のパスキー登録と全credential喪失後の復旧は、Railwayの個人・多要素認証済み運用者が発行した、対象・実行者・理由・5分以内の期限を持つ一回限りの登録記録に限る。登録リンク、開始ブラウザに束縛した短期Cookie、WebAuthn登録challengeを全て検証し、通常の公開Web API・メール・通常ログインからは登録・復旧できない。credential失効またはadminロール解除は、全Opsセッションの失効と同一トランザクションで行い、全Ops read/writeは現在の失効状態を再照合する | 高 | [セキュリティ](./security.md)、[データモデル](./data-model.md)、[コントロール](./controls.md)、[運用](./operations.md) |
 
 ### 現在の実装ブロッカー
 
@@ -104,7 +107,10 @@ adminは、台帳・返金の確認、通報対応、VIPコンシェルジュ対
 - Opsはadmin以外に存在を示さず、優先キューと一件単位の操作へ分離する。旧`/admin`の全操作フォームを一画面へ残さない。
 - Opsのユーザービューは対象を一人ずつ開き、Home、保有XXGGLL、プロフィール、設定状態、Creator管理対象を読み取り専用で表示する。ユーザーセッションの発行・差し替え、ユーザー向け更新APIのadminバイパス、秘密値の表示を行わず、詳細閲覧を監査する。
 - OpsのCreatorビューは対象を一人ずつ開き、Studio相当の概要、発行XXGGLL、匿名集計、収益要約、owner・staffアクセスを読み取り専用で表示する。Creatorセッションや管理権限の発行・差し替え、Creator向け更新APIのadminバイパス、個人ファン一覧、決済・本人確認の秘密値を提供せず、詳細閲覧を監査する。
-- Opsページ、旧`/admin`配下、`/api/admin`配下は、この開発PCでloopbackにだけbindしたdevelopment runtimeからの要求かつadminセッションの場合だけ利用できる。Railway、公開dev、prod、LAN内の別端末、loopback以外のHost、Host偽装を伴うproduction runtimeでは一律`404`を返す。公開環境の一般セッション応答はadmin権限とOps導線を露出しない。
+- OpsはRailwayの専用HTTPS Originで、利用者検証必須の登録済みパスキーにより発行された専用Opsセッションの場合だけ利用できる。通常ログイン、メール、パスワード、X OAuth、メール再設定、未登録・失効済みcredential、通常セッションはOpsの認可に使わない。`/ops/sign-in`以外の未認証Opsページ、旧`/admin`配下、`/api/admin`配下は一律`404`とし、Public、Home、Studioのナビゲーションとセッション応答にadmin権限・Ops導線・credentialの存在を露出しない。
+- Opsのブラウザ・ローカル端末・パスキー認証器へDB接続資格情報を渡さず、Railwayのサーバー処理だけがプライベートネットワーク経由で本番DBへ接続する。端末名、IP、Host、User-Agentをadmin本人の認証に使わない。
+- Opsの返金、送金、強制失効、プログラム終了、credential追加・削除は、5分以内に完了した専用パスキー再認証がなければ確定しない。通常利用者のパスワード再認証を代替に使わず、credentialの登録・失効・紛失復旧と認証結果を監査する。
+- 初回登録・全credential喪失後の復旧は、Railwayの多要素認証済み個人運用者が発行した一回限りの登録記録、開始ブラウザに束縛した短期Cookie、WebAuthn登録challengeを全て通過した場合だけ完了する。role解除・credential失効は全Ops session失効と同一トランザクションで実行し、失効後のread/writeを許可しない。
 - 廃止・統合対象の旧ルートは、主ナビ、主要リンク、決済復帰先、APIから到達不能であり、ファイルを残したまま非表示にするだけで完了としない。
 - 一般ユーザーが、一次発行・二次流通いずれの経路でも有料証票をクリエイター承認なしに購入でき、
   在庫仮押さえ15分・自動解放が機能する。

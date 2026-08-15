@@ -27,6 +27,15 @@ draft: true
 - ログ・ドメイン・変数を扱う操作では必ずserviceとenvironmentを指定し、変数値やcredentialファイルを表示・
   コピー・保存しない。
 
+## Opsパスキーの運用
+
+- 本番OpsはRailway上の専用HTTPS Originで運用し、Public/Fan/Studioの通常ログイン、一般ナビゲーション、DB公開接続から分離する。本番DB資格情報はRailwayのサーバー処理だけへ設定し、ブラウザ、ローカルPC、認証器、Issue、ログへコピーしない。
+- Railwayのプロジェクト管理はOpsより上位の信頼境界である。共有アカウントを禁止し、個人を識別できる最小権限アカウントだけに、利用可能な最もフィッシング耐性の高い多要素認証を必須にする。メンバー権限、環境変数、デプロイ、ドメイン、DB公開設定の変更を監査・通知し、担当終了時は即時に権限を外す。Railwayの認証情報・本番DB資格情報・登録リンクの秘密値をソースコード、Issue、ログ、ローカルPCへ複製しない。
+- `ops_role='admin'`の付与と最初のパスキー登録は、Railwayの認証済み運用手順でのみ実施する。role付与・既存Ops session失効・監査記録を一つのDBトランザクションで確定した後、Railway環境のサーバー実行だけで`npm run ops:issue-enrollment -- <admin-account-uuid> <railway-personal-account> <reason>`を実行する。運用者は対象account、個人Railwayアカウント、理由、5分以内の期限を記録して一回限りの登録記録を発行する。標準出力の一回限りURLは永続ログ、Issue、チャット、シェル履歴へ保存せず、確認済み本人の専用ブラウザへ一度だけ安全に引き渡す。登録リンクの秘密値はURLフラグメントで渡し、専用画面が一度だけ送信する。サーバーは原子的に消費して開始ブラウザに束縛した短期Cookieを発行し、そのブラウザでだけWebAuthn登録を許可する。メール、パスワード、X OAuth、通常のアプリ画面からadmin credentialを登録・復旧してはならない。
+- パスキーを紛失・侵害した疑いがある場合は、まず該当credentialと全Opsセッションを同一トランザクションで失効する。全credentialを失った場合はOpsを利用不可のままにし、Railwayの運用者本人確認後に新しい一回限りの登録を発行する。既存adminのcredential追加・削除も、5分以内の新しいパスキー再認証を必須にする。自動メール復旧、共有credential、秘密鍵のエクスポートを行わない。
+- credentialの登録、失効、認証成功・失敗、challenge再利用・期限切れ、adminロール変更、返金・送金等の再認証は監査対象とする。credential ID、公開鍵、challenge、セッション値、端末の生体情報を監査ログへ出さない。
+- リリース前に、PostgreSQLの公開接続が無効であること、Ops OriginがHTTPSだけで`OPS_ORIGIN`と`OPS_RP_ID`が完全一致すること、許可外Hostがプロキシで拒否されること、通常セッションではOps APIが`404`になること、未登録・失効済み・利用者検証なし・Origin/RP ID/challenge不一致のパスキーが拒否されることを確認する。初回登録・復旧・追加・削除、登録リンク・Cookie・challengeの再利用、role解除・credential失効と並行するOps操作、レート制限・期限切れ削除も確認する。
+
 ## 公開判定
 
 - 機能を有効化する前に、[要件](./requirements.md)の該当機能ゲートを満たし、検証記録を残す。
