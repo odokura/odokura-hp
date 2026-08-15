@@ -20,6 +20,7 @@ draft: true
 | [アーキテクチャ](./architecture.md) | システム構成、モジュール、外部連携 |
 | [データモデル](./data-model.md) | エンティティ、DDL、整合性制約 |
 | [コントロール](./controls.md) | 決済、出金、認可、属性開示、状態遷移、監査の強制条件 |
-| [セキュリティ](./security.md) | 認証認可、データ保護、決済、監査、保持 |
-| [運用](./operations.md) | Railway、リリース、ロールバック、セキュリティ運用 |
+| [セキュリティ基本設計](./security-design.md) | 保護対象、脅威、信頼境界、Railway方針、責任分界、管理運用体制、復旧目標、リリースゲート |
+| [セキュリティ詳細](./security.md) | 認証認可、データ保護、決済、監査、保持の実装条件 |
+| [運用](./operations.md) | Railway、リリース、監視、インシデント、バックアップ・復旧、定期点検 |
 | [クリエイター精算](./legal-review-payment-secondary-termination.md) | 報酬、精算、返金、出金の条件 |

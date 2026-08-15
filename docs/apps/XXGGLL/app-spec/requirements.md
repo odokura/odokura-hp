@@ -50,7 +50,7 @@ draft: true
 | F-35 | adminは、F-34のOpsセッションでのみ対象Creatorを一人選び、そのCreatorの概要、発行XXGGLL、匿名集計、収益要約、owner・staffアクセスをOps専用の読み取り専用ビューで確認できる。Creator本人のセッションや管理権限へ切り替えず、Creator向け更新APIへadminバイパスを追加しない。個人ファン一覧、未同意属性、Stripe Connected Account ID、銀行口座、本人確認書類、秘密値、Creator操作を提供せず、詳細閲覧を監査する | 高 | [UX](./ux.md)、[セキュリティ](./security.md)、[コントロール](./controls.md) |
 | F-36 | OpsのブラウザはDB接続資格情報を受け取らず、Railway上で稼働中のサーバーだけがプライベートネットワーク経由で本番PostgreSQLへ接続する。本番起動時に`OPS_ORIGIN`と`OPS_RP_ID`の完全一致HTTPS設定を検証し、不正なら起動を停止する。Ops用のパスキー認証開始以外の未認証Opsページ・管理APIは、入力解析、DB・Stripe構成確認、業務処理より先に専用Opsセッションを確認し、adminアカウント、credential、失効理由を区別しない`404`とする | 高 | [アーキテクチャ](./architecture.md)、[セキュリティ](./security.md)、[コントロール](./controls.md) |
 | F-37 | adminによる返金、送金、強制失効、プログラム終了、既存adminのパスキー追加・削除は、5分以内に完了した専用Opsパスキーの再認証がある場合だけ確定できる。通常利用者のパスワード再認証では代替できず、パスキーの登録・失効・再認証・全喪失後の復旧を監査する | 高 | [セキュリティ](./security.md)、[コントロール](./controls.md)、[運用](./operations.md) |
-| F-38 | 最初のパスキー登録、全credential喪失後の復旧、adminロールの付与・解除は、Railwayの個人・多要素認証済み運用者が、稼働中の専用サービスへ対話的SSH接続して行う運用手順に限る。登録・復旧は対象・確認済みRailway個人アカウント・理由・5分以内の期限を持つ一回限りの登録記録を作成する。復旧では旧credential、Ops session、未完了登録、challengeを同一トランザクションで全て失効してから新しい登録記録を作成し、ロール解除はDBトリガーで同じ失効を強制する。登録リンク、開始ブラウザに束縛した短期Cookie、WebAuthn登録challengeを全て検証し、通常の公開Web API・メール・通常ログイン・ローカルPCのCLIまたはDB接続からは登録・復旧できない。全Ops read/writeは現在の失効状態を再照合する | 高 | [セキュリティ](./security.md)、[データモデル](./data-model.md)、[コントロール](./controls.md)、[運用](./operations.md) |
+| F-38 | 最初のパスキー登録、全credential喪失後の復旧、adminロールの付与・解除は、ローカルの`npm run ops:setup -- ACTION`から行う。`ACTION`は`bootstrap`、`recover`、`revoke`のいずれかとする。`railway whoami`で確認したRailway認証を使い、Project `f0d6777b-fd62-4561-b504-44e2a3386895`、environment `b98d67a3-d33e-429a-9e0e-820f95591c5f`、Web service `12dfb4a9-961e-4af3-a072-cd4cc15b7cf6`へ`railway ssh`で委譲した実行containerだけで行う。登録・復旧はactive accountが一件だけなどの対象条件、Railway個人アカウント、固定理由、5分以内の期限を持つ一回限りの登録記録を作成する。複数のactive accountや既存の有効credentialがある場合は対象を推測せず停止する。復旧では旧credential、Ops session、未完了登録、challengeを同一トランザクションで全て失効してから新しい登録記録を作成し、ロール解除はDBトリガーで同じ失効を強制する。登録リンク、開始ブラウザに束縛した短期Cookie、WebAuthn登録challengeを全て検証し、通常の公開Web API・メール・通常ログイン・ローカルDB接続・`railway run`からは登録・復旧できない。全Ops read/writeは現在の失効状態を再照合する | 高 | [セキュリティ](./security.md)、[データモデル](./data-model.md)、[コントロール](./controls.md)、[運用](./operations.md) |
 | F-39 | `/fan/settings`は、本人のマスク済み連絡先、ログイン方法、パスワード状態、ログイン中の端末数、プロフィール共有状態、アカウント操作を現在値と変更先の行として表示する。認証、プロフィール、活動、保有XXGGLL、Creator管理のフォームを一画面へ混在させず、各責務の画面へ分離する。設定トップは`T-SettingsOverview`、セキュリティ詳細は`T-SettingsDetail`を使う | 高 | [設定画面](./settings.md)、[デザイン](./design.md)、[UX](./ux.md) |
 | F-40 | 利用者は設定からパスワードの設定・変更、X・Google連携の追加・解除、個別セッション終了、全端末ログアウトを行える。現行リリースの連絡先はマスク値の確認だけとし、メール変更は確認・列挙・レート制限・セッション失効の契約が確定するまで操作を提供しない。パスワード変更・連携解除・セッション操作は、CSRF対策、所有権確認、必要な再認証、成功後のセッション状態再取得をサーバー側で行う | 高 | [設定画面](./settings.md)、[セキュリティ](./security.md) |
 | F-41 | 設定画面はカード情報、銀行口座、パスワード、OAuthトークン、Cookie、DB接続資格情報、Opsパスキーを表示・取得しない。支払い履歴は`/fan/activity`、自動継続の停止・再開は対象XXGGLL詳細、プロフィール共有の編集は`/fan/profile`で扱う | 高 | [設定画面](./settings.md)、[セキュリティ](./security.md) |
@@ -147,6 +147,6 @@ adminは、台帳・返金の確認、通報対応、VIPコンシェルジュ対
 | クリエイター収益・出金 | Studio/Opsの権限境界、Accounts v2 recipient capability、実送金、失敗復旧を確認する |
 | 固定コンテンツ | 権利確認、保存、審査、停止、保有者への配信、譲渡後の表示範囲を確認する |
 | 追加商品・VIP個別サービス | 証票と独立した条件、決済、履行、取消、返金、運用審査を確認する |
-| VIP・ExtraVIPコンシェルジュ | 招待、匿名打診、同意、可視性制御、通報、停止をFan/Studio/Opsで確認する |
-| VIP DM | 利用権、送信上限、安全導線、月次請求、返金、Webhookを確認する |
+| VIP・ExtraVIPコンシェルジュ | 招待、匿名打診、同意、可視性制御、通報、停止、外部24時間受付、安全側への自動停止をFan / Studio / Opsで確認する |
+| VIP DM | 利用権、送信上限、安全導線、外部24時間受付、安全側への自動停止、月次請求、返金、Webhookを確認する |
 | 無料証票 | 提供しない |

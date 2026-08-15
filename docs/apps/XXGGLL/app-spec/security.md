@@ -1,11 +1,29 @@
 ---
-title: XXGGLL セキュリティ
-sidebar_label: セキュリティ
-sidebar_position: 7
+title: XXGGLL セキュリティ詳細
+sidebar_label: セキュリティ詳細
+sidebar_position: 8
 draft: true
 ---
 
-# XXGGLL セキュリティ
+# XXGGLL セキュリティ詳細
+
+本書は、[セキュリティ基本設計](./security-design.md)を実装可能な条件へ落とす詳細仕様である。最初に全体像、
+責任分界、Railway方針、管理運用体制を確認し、変更対象に応じて本書の該当カテゴリを参照する。
+
+| カテゴリ | 本書の範囲 |
+| --- | --- |
+| 開発・供給網 | 依存関係・秘密値検査 |
+| ID・アクセス | 通常利用者、Creator、Ops、Railway管理者の認証・認可 |
+| プライバシー | 年齢、個人情報、属性、匿名性、保持・削除 |
+| 取引 | 決済、台帳、不正対策、取引監視 |
+| 利用者安全 | コンテンツ、メッセージ、VIPコンシェルジュ |
+| 基盤・運用 | 監査ログ、インフラ、シークレット、インシデント対応 |
+
+本書と基本設計に差異がある場合は、実装者が一方を選ばず、変更Issueで両方を整合させる。
+
+開発者、運用者、管理者は同一の一人で、通常の管理操作は一台の本人専用PCから行う。アプリケーションの有効な
+`ops_role='admin'`とRailwayの恒常的な人間用membershipは、それぞれ本人の一つだけを原則とする。二人承認、職務分離、
+代替担当を設けない代わりに、本書の固定target、PC外のpasskey・回復手段、再認証、原子的統制、監査、自動test、機能gateを省略しない。
 
 ## 依存関係・秘密値検査
 
@@ -28,12 +46,23 @@ draft: true
 - Opsは公開利用者向けのログインとは別のHTTPS Originとする。環境ごとに`OPS_ORIGIN`を完全一致のHTTPS URL、`OPS_RP_ID`をそのURLのホスト名として設定する。本番起動時にHTTPS、パス・クエリ・フラグメントを含まないこと、両設定のホスト名一致を検証し、不一致なら起動しない。親ドメイン・ワイルドカードのRP IDを使わず、リバースプロキシはこのHostだけをOpsへルーティングし、他のHost headerをアプリケーション到達前に拒否する。`/ops/sign-in`だけはパスキー認証開始のために到達可能とするが、Public、Home、Studioのナビゲーション・セッション応答・通常の認証画面からOpsの存在、adminロール、credentialの有無を示さない。認証済みOpsページ、旧`/admin`配下、`/api/admin`配下は、有効なOpsセッションがない要求へ理由を区別しない`404`を返す。管理APIは入力解析、DB・外部決済の構成確認、業務処理より先にこの確認を完了する。
 - Opsセッションは通常の`auth_session`と別の`admin_session`に保存し、Cookieも`Secure`、`HttpOnly`、`SameSite=Strict`、`__Host-` prefixを満たす専用名にする。通常セッション、Cookie差し替え、利用者・Creatorのセッション発行ではOpsの認可を満たさない。通常セッションの全失効（ログアウト全端末・パスワード変更を含む）は、同じaccountのOps sessionも失効する。全Opsのread/write要求は、共通のOpsセッション検証で現在の`admin_session`、紐づくcredentialの失効状態、`account.ops_role='admin'`、accountがactiveであること、アイドル15分、発行から8時間を同一要求内で再照合する。credential失効・adminロール解除と該当`admin_session`全件の失効は同一DBトランザクションで行い、ロール解除はDBトリガーでも強制する。ロールを再付与しても過去のcredential、Ops session、未完了登録、challengeは再利用できない。更新操作は認可確認から確定まで同じトランザクションで対象セッションとaccountをロックする。
 - 返金、送金、強制失効、プログラム終了などの高リスクOps操作は、5分以内に完了したパスキーの再認証をサーバー側で確認する。通常利用者の高リスク操作に必要なパスワード再認証とはセッション、証跡、失敗応答を共有しない。
-- `ops_role='admin'`の付与、最初のパスキー登録、全credential喪失後の復旧、ロール解除は、通常の公開Web APIでは扱わない。Railwayの多要素認証済み個人アカウントが、稼働中の対象サービスへ対話的SSH接続して実行する運用手順だけが、対象account、確認済みのRailway個人アカウント、理由、有効期限を記録した一回限りの`admin_passkey_enrollment`を作成できる。実行前に`railway whoami`とRailwayの操作監査で個人アカウントを照合し、入力する実行者名はこの照合結果と一致させる。登録リンクの秘密値は対話端末だけに表示し、URLフラグメントで受け渡す。`Referrer-Policy: no-referrer`の専用画面がTLSで一度だけ送信し、サーバーは有効な登録記録を原子的に消費して、開始ブラウザに結び付く5分以内の`__Host-`事前認可Cookieを発行する。そのCookieを持つ`/ops/enroll`だけでWebAuthn登録challengeを発行する。リンク、Cookie、challengeのいずれかがない要求と失敗理由は同じ`404`とする。
+- `ops_role='admin'`の付与、最初のパスキー登録、全credential喪失後の復旧、ロール解除は、通常の公開Web APIでは扱わない。ローカルの`npm run ops:setup -- ACTION`は、`ACTION`を`bootstrap`、`recover`、`revoke`のいずれかとして実行する。`railway whoami`で確認したRailway認証を使い、Project `f0d6777b-fd62-4561-b504-44e2a3386895`、environment `b98d67a3-d33e-429a-9e0e-820f95591c5f`、Web service `12dfb4a9-961e-4af3-a072-cd4cc15b7cf6`へ`railway ssh`で単一commandを委譲するだけである。稼働中のDev実行containerだけが、対象account、照合済みのRailway個人アカウント、固定理由、有効期限を記録した一回限りの`admin_passkey_enrollment`を作成できる。初回bootstrapはactive accountが一件だけで有効credentialがない場合に限定し、複数対象や既存credentialを推測・上書きしない。ローカルPCはDB接続、Railway variable、`railway run`、CIへ登録処理を委譲しない。登録前に実行containerがProject/Environment/Service IDとDevの`APP_BASE_URL`/`OPS_ORIGIN`を完全一致で検証する。登録リンクの秘密値は対話端末だけに表示し、URLフラグメントで受け渡す。`Referrer-Policy: no-referrer`の専用画面がTLSで一度だけ送信し、サーバーは有効な登録記録を原子的に消費して、開始ブラウザに結び付く5分以内の`__Host-`事前認可Cookieを発行する。そのCookieを持つ`/ops/enroll`だけでWebAuthn登録challengeを発行する。リンク、Cookie、challengeのいずれかがない要求と失敗理由は同じ`404`とする。
+- 上記のproject、environment、service、OriginはDev専用であり、productionへ流用しない。productionの初回登録・復旧・解除は、Devと同じ
+  `npm run ops:setup -- ACTION`の操作境界を維持しながら、production専用固定target、active admin一件の対象条件、action別の固定理由、
+  旧credential・session・challengeの一括失効、監査、PC外の回復手段を定義したrunbookとtestが完成するまで有効化しない。
 - 既存adminのcredential追加・削除は、有効なOpsセッションだけでは行えない。対象accountの現在有効なcredentialによる5分以内の新しいパスキー再認証を完了し、再認証、adminロール、credentialとセッションの失効状態を同じDBトランザクションで再確認した場合だけ確定する。追加・削除の成功は監査する。紛失・侵害または全credential喪失後の復旧では、旧credential、全Opsセッション、未完了登録、未消費challengeを先に同一トランザクションで失効し、新しい一回限りの登録だけを発行する。メール等による自動復旧を行わない。
 - 運営担当者がユーザー画面を確認する場合は、admin専用の読み取り専用ビューで一人の対象を明示して開く。ユーザー本人のセッション発行、Cookie差し替え、なりすまし、ユーザー向け更新APIの管理者バイパスを実装しない。詳細閲覧は`audit_log_entry`へ記録し、認証秘密、OAuthトークン、セッション秘密、パスワードハッシュ、決済手段を返さない。
 - 運営担当者がCreator画面を確認する場合は、admin専用の読み取り専用ビューで一人の対象を明示して開く。Creator本人のセッション発行、管理権限の差し替え、Creator向け更新APIの管理者バイパスを実装しない。詳細閲覧は`audit_log_entry`へ記録し、個人ファン一覧、未同意属性、Stripe Connected Account ID、銀行口座、本人確認書類、秘密値を返さない。
-- OpsはRailway上の本番アプリケーションがサーバー側でDBへ接続して処理する。ブラウザ、ローカルPC、パスキー認証器へ`DATABASE_URL`、DB接続資格情報、Railwayの管理資格情報を配布せず、PostgreSQLの公開接続を有効にしない。Ops APIはブラウザからのDB直接接続を受け付けず、Opsセッションを検証したサーバー処理だけがプライベートネットワーク経由でDBを利用する。
-- Railwayのプロジェクト管理権限はOpsより上位の信頼境界として扱う。共有アカウントを使わず、個人を識別できる最小権限のアカウントだけを許可し、利用可能な最もフィッシング耐性の高い多要素認証を必須にする。環境変数、デプロイ、ドメイン、メンバー権限、DB公開設定の変更は監査・通知し、担当終了時は即時に権限を外す。ソースコードだけの漏えいではパスキー秘密鍵、Railwayの管理資格情報、DB接続資格情報、登録用の一回限りの秘密値を得られない設計にする。
+- OpsはRailway上のアプリケーションがサーバー側でDBへ接続して処理する。ブラウザ、ローカルPC、パスキー認証器へ`DATABASE_URL`と
+  DB接続資格情報を配布せず、PostgreSQLの公開接続を有効にしない。Railwayへの本人login sessionは管理PCのOS保護済みkeyringまたは
+  browser profileだけで扱い、生のtokenを表示、export、source・Issue・logへ保存しない。ローカルの`ops:setup`はSSHの単一commandを
+  起動するだけで、DB接続はDev実行container内の`DATABASE_URL`だけが行う。Ops APIはブラウザからのDB直接接続を受け付けず、
+  Opsセッションを検証したサーバー処理だけがprivate network経由でDBを利用する。
+- Railwayのプロジェクト管理権限はOpsより上位の信頼境界として扱う。共有アカウントを使わず、人間用membershipは本人の個人アカウント一つを
+  原則とし、利用可能な最もフィッシング耐性の高い多要素認証を必須にする。passkey認証器と回復コードは管理PCだけに置かない。環境変数、
+  デプロイ、ドメイン、メンバー権限、DB公開設定の変更は監査・通知し、PC・account・passkeyの紛失または侵害時はoff-device回復手段から
+  session、token、credentialを失効する。ソースコードまたは管理PCだけの漏えいではパスキー秘密鍵、Railwayの管理資格情報、DB接続資格情報、
+  登録用の一回限りの秘密値を同時に得られない設計にする。
 - 端末名、IPアドレス、Host header、User-Agent、ブラウザ指紋をadmin本人の認証要素として扱わない。端末の利用制限を導入する場合は、別途、コピー不能な端末鍵とその失効・復旧手順を正本へ追加するまで有効化しない。
 - 役割ベースアクセス制御（RBAC）を用い、[要件](./requirements.md)の権限マトリクスをサーバー側の認可判定に
   そのまま対応させる。フロントエンドでの表示制御だけに頼らない。
@@ -112,7 +141,8 @@ draft: true
   同じイベントIDは再処理しない。Accounts v2のrecipient capabilityイベントだけを用いて
   `creator_profile.stripe_payouts_enabled_at`へ反映し、対象外・未対応のイベントは送金や台帳を変更せずに処理済みとする。
 - 在庫仮押さえ（15分）は排他制御のもとで行い、同一証票・同一枠に対する同時購入が1件だけ成立するようにする。
-- 返金・出金申請の承認はadminロールが行い、操作は監査ログに記録する。複数人承認の仕組みは設けない。
+- 返金・出金申請の確定はadminロールが行い、操作は監査ログに記録する。複数人承認の仕組みは設けず、5分以内のpasskey再認証、
+  原子的な状態遷移、台帳照合、全件監査を代替統制とする。
 
 ## 不正対策
 
@@ -162,10 +192,11 @@ draft: true
 ## 運営権限の統制と監査ログ
 
 - 証票の強制失効、プログラム終了の確定、返金は、いずれもadminロールに限定し、
-  操作の全体を監査ログへ記録する。提案者と承認者を分ける複数人承認は行わない。
+  操作の全体を監査ログへ記録する。提案者と承認者を分ける複数人承認は行わず、操作直前のpasskey再認証、対象と結果の再表示、
+  原子的な状態遷移、追記専用監査を省略しない。
 - 次を監査ログの必須記録対象とする。
-- 発行者向けプロフィール公開フラグの有効化・無効化
-- Creator ownerによる現在保有者の個人開示閲覧
+  - 発行者向けプロフィール公開フラグの有効化・無効化
+  - Creator ownerによる現在保有者の個人開示閲覧
   - 台帳への記帳・返金
   - 証票の状態遷移（発行・譲渡・継続・回収・終了・アーカイブ）
   - 管理画面での閲覧・操作（個別プロフィール閲覧を含む）
@@ -210,6 +241,7 @@ draft: true
 - 調査中のアカウントは `investigation_hold` として、譲渡・継続決済・属性共有・公開表示・固定コンテンツ
   閲覧を停止する。違反が確認されなければ直ちに復帰し、支払済み期間を停止日数分延長する
   （[取引ルール](../concept/general/transaction-general.md)の「調査・違反」）。
-- 個人情報漏えい、脅迫、つきまとい等の緊急申告は24時間受付とし、即時アクセス停止を可能にする
+- 単独運用では本人による24時間の有人応答を約束しない。個人情報漏えい、脅迫、つきまとい等へ24時間即応する必要がある
+  VIP・個別メッセージ機能は、外部の24時間受付と申告時に安全側へ自動停止できる仕組みを実装するまで公開しない
   （[VIPコンシェルジュ運用](../concept/vip/vip-concierge.md)の「応答基準」）。
 - 情報漏えいが疑われる場合は、内部エスカレーション、影響範囲の特定、必要な利用者・監督官庁への通知を行う。
