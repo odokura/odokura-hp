@@ -169,14 +169,47 @@ draft: true
 - 実行環境、commit SHA、結果、残る制約、rollback、Go / 条件付きGo / No-Goをrelease記録へ残す。
 - 実施者と承認者を分ける帳票は作らず、本人がCI結果とchecklistを確認して一回のGo / No-Goを記録する。
 
-### 6.2 Deploy後
+### 6.2 Dev切替検証（Issue #189）
+
+本番で同じ切替を試験する前に、DevのWeb serviceだけでoverlap・draining・終了境界を確認する。対象はIssueで指定したDev環境とし、Cloudflare、DNS、本番Railway、Cron serviceは変更しない。検証には専用test accountと読み取りまたは冪等なテスト要求だけを使い、commit SHA、旧・新deployment ID、開始・終了時刻、request ID、ログをrelease記録へ残す。Next.js / Node.jsへ独自のsignal handlerは追加せず、実行時の観測結果だけを記録する。
+
+1. **長時間要求中の再deploy**
+   - Devで30秒を超えて継続する読み取りまたは冪等な要求を開始し、要求中にWeb deploymentを切り替える。
+   - 要求が旧deploymentのdraining中にどう完了または中断したか、応答、request ID、データの重複・欠落がないことを確認する。再現できない場合も、要求時間と切替時刻を記録する。
+
+2. **SIGTERM受信と終了**
+   - 旧deploymentのログでSIGTERM受信時刻を確認し、受信後に新規要求の受付が止まり、draining時間内に正常終了したことを確認する。
+   - 30秒経過後も終了しない場合はRailwayの強制終了を含む実際の挙動を記録する。SIGKILL、終了遅延、未完了のcleanup、接続・台帳の不整合があればNo-Goとする。
+
+3. **overlap中の新旧deploymentへの要求確認**
+   - 新deploymentのhealthcheck成功後に新規要求が新deploymentへ到達し、切替前から継続中の要求が旧deploymentのdraining対象として扱われることを、deployment ID、ログ、メトリクスまたはtraceで確認する。
+   - 旧・新のどちらか一方だけに偏る場合を直ちに異常とはせず、Railwayが記録した切替時刻と要求の状態が整合することを確認する。5xx、認証状態の破損、DB接続エラー、同一更新の二重実行があれば停止する。
+
+4. **draining時間超過時の挙動**
+   - 30秒を超えて継続する要求を意図的に作り、draining時間超過後に要求が終了または接続切断される境界を確認する。応答が返らないまま無期限に残らないこと、強制終了後に更新が二重実行されないことを確認する。
+   - 期待する境界を定義できない、プロセスが残り続ける、またはデータ整合性を確認できない場合は、結果を確定せずNo-Goとする。
+
+5. **異常時のrollback判断**
+   - healthcheck失敗、5xx増加、認証・DB接続エラー、SIGTERM後の終了失敗、要求の二重実行・欠落、旧・新deployment間の互換性不一致のいずれかがあれば、Dev検証を中止して前回正常deploymentへrollbackする。
+   - rollback前に対象deployment、影響要求、migration状態、台帳・監査logの整合性を保存し、rollback後に同じ確認を再実施する。migrationが旧版と互換しない場合はdown migrationを行わず、互換修正版を用意する。
+
+6. **本番試験前の中止条件**
+   - 上記のいずれかが未実施、再現不能、または証跡不足である。
+   - DevでSIGTERM、draining、healthcheck、migration、要求の整合性のいずれかに未解決の異常がある。
+   - CIのtypecheck、unit test、integration test、production build、migration checkが成功していない、または直近の失敗原因が未解消である。
+   - rollback対象の正常deployment、監視、request IDを追跡できるログ、専用test accountのいずれかを準備できない。
+   - Cloudflare、DNS、本番RailwayまたはCronを変更しないと試験できない。
+
+上記の中止条件に該当しないことを本人がrelease記録で確認して初めて、本番の通常deploy判断へ進む。Issue #189の実装完了だけでは、実環境でのDev切替検証または本番試験完了を意味しない。
+
+### 6.3 Deploy後
 
 - deployが成功したことだけで完了にしない。commit SHA、migration status、health、Public / Ops外形監視、主要read model、
   Stripe webhook受信、audit書込みを確認する。
 - deploy直後15分は5xx、認証拒否、DB接続、Webhook失敗、CPU・RAMを重点監視する。
 - 個人情報や金銭に関わる手動smoke testは、専用test accountとStripe test modeを使う。本番利用者データを試験入力に使わない。
 
-### 6.3 Rollback
+### 6.4 Rollback
 
 - application不具合は前回正常deploymentへ戻す。migration後の旧版が動かない場合は、DBを安易にdown migrationせず、互換修正版をdeployする。
 - 異常機能をサーバー側機能gateから外して再deployし、画面とAPIを同時に利用不可へ戻す。
