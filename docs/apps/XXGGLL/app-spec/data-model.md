@@ -210,6 +210,7 @@ CREATE TABLE admin_session (
 -- `purpose='enroll'`のchallengeは、有効な`enrollment_id`と同じaccount、開始ブラウザの事前認可Cookieを必須にする。登録成功時に`completed_at`を記録し、同じ登録記録を再利用しない。
 -- `purpose='credential_add'`のchallengeは既存Opsセッションのaccountに結び付け、登録開始・確定の双方で5分以内のOpsパスキー再認証を確認する。`enrollment_id`は使わない。
 -- 全Ops要求はadmin_session、account、admin_passkey_credentialを結合して、adminロール、各`revoked_at`、各有効期限を再照合する。credentialの失効、adminロールの解除、またはOpsログアウト時は、対応するadmin_sessionを同一トランザクションで全て失効する。
+-- `account.ops_role`が`admin`から他の値へ変わるDBトリガーは、admin_session、admin_passkey_credential、未完了admin_passkey_enrollment、未消費admin_webauthn_challengeを同一トランザクションで失効し、監査行を追加する。ロール再付与で過去のOpsアクセスを復活させない。
 
 CREATE TABLE account_profile (
   account_id UUID PRIMARY KEY REFERENCES account(id),
