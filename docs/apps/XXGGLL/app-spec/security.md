@@ -24,7 +24,7 @@ draft: true
 - 運営担当者（`account.ops_role = 'admin'`）のログインは、認証基盤が標準機能として提供する多要素認証を
   有効化する程度に留め、独自の承認基盤は作らない。
 - 運営担当者がユーザー画面を確認する場合は、admin専用の読み取り専用ビューで一人の対象を明示して開く。ユーザー本人のセッション発行、Cookie差し替え、なりすまし、ユーザー向け更新APIの管理者バイパスを実装しない。詳細閲覧は`audit_log_entry`へ記録し、認証秘密、OAuthトークン、セッション秘密、パスワードハッシュ、決済手段を返さない。
-- 運営担当者がCreator画面を確認する場合は、admin専用の読み取り専用ビューで一人の対象を明示して開く。Creator本人のセッション発行、所属権限の差し替え、Creator向け更新APIの管理者バイパスを実装しない。詳細閲覧は`audit_log_entry`へ記録し、個人ファン一覧、未同意属性、Stripe Connected Account ID、銀行口座、本人確認書類、秘密値を返さない。
+- 運営担当者がCreator画面を確認する場合は、admin専用の読み取り専用ビューで一人の対象を明示して開く。Creator本人のセッション発行、管理権限の差し替え、Creator向け更新APIの管理者バイパスを実装しない。詳細閲覧は`audit_log_entry`へ記録し、個人ファン一覧、未同意属性、Stripe Connected Account ID、銀行口座、本人確認書類、秘密値を返さない。
 - Opsページ、旧`/admin`配下、`/api/admin`配下は、この開発PC上でdevelopment runtimeをloopbackへbindし、要求Hostも`localhost`、`127.0.0.1`または`::1`である場合だけ認可判定へ進める。Railway環境、production runtime、公開Host、LAN Hostではadmin本人にも理由を区別しない`404`を返す。外部IPの許可リストを「このPC」の代用にしない。
 - ローカルOps条件はProxyだけに依存せず、Opsページのサーバー境界でも再検証する。公開環境のセッション応答では`isAdmin`を有効にせず、一般ナビゲーションにOps導線を出さない。
 - 役割ベースアクセス制御（RBAC）を用い、[要件](./requirements.md)の権限マトリクスをサーバー側の認可判定に
