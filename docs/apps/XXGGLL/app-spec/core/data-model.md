@@ -15,7 +15,7 @@ draft: true
 | --- | --- | --- | --- |
 | アカウント | ログイン主体と利用状態 | 本人は自分の設定、adminは必要な停止だけ | `closed`への遷移は本人の明示確認と再認証を要求し、状態変更・セッション失効・個人情報の匿名化を監査する |
 | Opsパスキー・セッション | adminのWebAuthn公開鍵、短期challenge、通常ログインと分離したOpsセッション | 登録済みadminだけがパスキーでOps認証。credentialの付与・全喪失後の復旧は運用手順だけ | 秘密鍵・生体情報・生challenge・生セッションを保存しない。登録・失効・認証は監査する |
-| プロフィール | 本人が入力した許可済み属性と、発行者への共通公開状態 | 本人だけが変更。現在の保有者について発行者ownerは自動開示項目と有効な任意プロフィールだけ読取 | 値変更は公開フラグを有効にしない限り任意プロフィールを開示しない |
+| プロフィール | 本人が入力した許可済み属性と、発行者への共通公開状態 | 本人だけが変更。現在の保有者について発行者ownerは自動開示項目と有効な任意プロフィールだけ読取 | 新規は共有を既定、移行前accountは既存状態を維持する。共有チェックと項目を別revisionで更新する |
 | クリエイター・プログラム | クリエイターと発行するXXGGLL | 対象Creatorのownerと許可済みstaff。Opsは審査・停止 | 公開・終了は監査する |
 | 関係時点スナップショット | 現保有者の取得日時、取得時購入額と、その時点で正規連携元から確認したXフォロワー数 | 本人は自分の記録、Creatorは認可済み集計または当該現在保有者の限定項目、Opsは必要時だけ | 取得時点の追記後は上書きしない。取得失敗を推定値で補完しない |
 | グッズ購入登録 | XXGGLL発行コードで本人が登録した対象商品、購入元、登録日時 | 本人と認可済み集計だけ。譲渡先へ引き継がない | コードは一回限り。生コードを保存・記録しない |
@@ -25,6 +25,22 @@ draft: true
 | 発行者向けプロフィール公開 | 本人が任意プロフィールを保有中の全発行者へ公開するか | 本人だけが有効・無効を変更。発行者ownerは現在保有者についてだけ読取 | フラグ無効化で任意プロフィールを即時終了し、現在保有者でなくなると自動開示を含めて終了する |
 | 追加商品・個別サービス | XXGGLLとは別の申込み・契約・決済 | 契約当事者、対象Creatorのowner・staff、admin | 証票の終了と独立して履行・取消・返金する |
 | 監査ログ | 重大操作の証跡 | adminは読取のみ | 追記専用。更新・削除しない |
+
+## Creator管理のread model
+
+Creator管理は保存テーブルをブラウザへ直接写さず、目的別のserver read modelを組み立てる。read modelは永続化した正本ではなく、要求時点の認可と現在状態から作る投影である。
+
+| read model | 集計・表示単位 | 含めないもの | 詳細正本 |
+| --- | --- | --- | --- |
+| `RM-CreatorOverview` | 対象Creator一件の要対応、発行状態、重複排除した現在保有者、収益状態 | 個人保有者、プロフィール、支援表現、決済手段 | [概要画面](../experience/creator-management/dashboard.md) |
+| `RM-IssuanceProgramList` | 一件一`issuance_program` | 別契約の提供物、個人プロフィール | [発行プログラム](../experience/creator-management/programs.md) |
+| `RM-IssuanceProgramDetail` | 一件の`issuance_program`。owner限定区画だけ一件一`certificate` | 他プログラム、staff向け個人開示、前保有者 | [発行プログラム](../experience/creator-management/programs.md) |
+| `RM-CreatorAudienceV1` | Creator全体または一プログラムのunique current holder。抑制・5単位丸め後の概数と割合だけ | account・certificate ID、生件数、原プロフィール、応援文 | [ファン全体の傾向](../experience/creator-management/audience.md) |
+| `RM-CreatorRevenue` | Creator・通貨・報酬状態 | Fan連絡先、カード・口座・本人確認書類 | [収益・精算](../experience/creator-management/revenue.md) |
+| `RM-CreatorOfferingList` / `Detail` | 一件一`additional_offering` | 発行プログラム、見込み客一覧、Audience集計 | [別契約の提供物](../experience/creator-management/offerings.md) |
+| `RM-CreatorSettings` | Creator一件の公開・同意・owner・staff permission | Stripe・認証・sessionの秘密値 | [設定・権限](../experience/creator-management/settings.md) |
+
+同じ値を複数のread modelで返す場合も、定義ID、単位、基準時刻を一致させる。source取得失敗を`0`、空配列、`false`へ補完しない。
 
 ## 保存方針
 
@@ -40,7 +56,7 @@ draft: true
 
 | 記録 | 許可するキー | 禁止する値 | 検証 |
 | --- | --- | --- | --- |
-| `account_profile.field_values` | `display_name`（アカウント名）、`origin_country_or_region`（出身国・地域）、`age_range`、`occupation`、`interests`、`support_reason`、`activity_history`、`preferred_name`、`free_text` | 住所、電話番号、メールアドレス、SNS ID、生年月日、金融情報、要配慮個人情報 | キー、型、最大長、私的連絡先パターンをサーバーで検証する |
+| `account_profile.field_values` | `display_name`（アカウント名）、`origin_country_or_region`（出身国・地域）、`age_range`、`occupation`、`interest`、`support_reason`、`activity_history`、`preferred_name` | これら以外のキー、自由記述、住所、電話番号、メールアドレス、SNS ID、生年月日、金融情報、要配慮個人情報 | [プロフィール画面](../experience/profile.md)の型・列挙ID・最大長をサーバーで検証する。現行の既知日本語ラベルは同じ意味のIDへ移行し、`回答しない`はキーを保存しない |
 | `additional_offering.terms` | 内容、価格、数量上限、申込期限、取消・返金条件 | 購入者の連絡先・本人確認情報 | 公開前に必須キー・型を検証する |
 | `service_engagement.terms` | 提供内容、対象人数、回数、時間、期限、連絡手段、価格、変更・取消・返金条件、禁止事項、利用権 | 当事者以外の個人情報、決済カード・口座情報 | 契約確定前に必須キー・型を検証する。確定後は内容を上書きしない |
 | `audit_log_entry.detail` | 操作ごとに[コントロール仕様](./controls.md)の「監査ログの必須内容」で定めた識別子・結果 | メールアドレス、メッセージ本文、秘密値、カード・口座情報、本人確認書類 | 操作別スキーマをサーバーで検証する |
@@ -75,7 +91,8 @@ draft: true
 | stripe_webhook_event | Stripe WebhookのイベントID・種別・処理結果。本文は保存しない | — |
 | payment_attempt | 購入要求、冪等キー、Stripe Payment Intent、決済状態 | — |
 | profile_creator_disclosure_event | 発行者への共通プロフィール公開フラグの有効化・無効化履歴 | 引き継がない |
-| support_expression | 現保有者が証票ごとに保存する応援表現とクリエイターへの明示共有設定 | 引き継がない |
+| support_expression | 現保有者が証票ごとに保存する応援表現と、別途機能gateされた専用画面への明示共有設定。Audienceの入力・集計sourceにはしない | 引き継がない |
+| creator_audience_release | Audienceの週次公開snapshot。内部差分判定用のセル件数と、APIへ返せる抑制・丸め済みpayloadを分離する | 個人ID・プロフィール原値は保存しない。内部件数は直近3週だけ保持し、公開APIから読めない |
 | secondary_listing | 前保有者による再発行申込みと、新保有者に対する在庫仮押さえ | — |
 | waitlist_entry | 待機リスト登録と簡易重複防止用の指紋 | — |
 | fixed_content_asset | 固定コンテンツの登録 | 公開時に定めた範囲で引き継ぐ |
@@ -222,14 +239,21 @@ CREATE TABLE admin_session (
 CREATE TABLE account_profile (
   account_id UUID PRIMARY KEY REFERENCES account(id),
   field_values JSONB NOT NULL DEFAULT '{}'::jsonb, -- 許可済みのプロフィール項目だけを保持する。連絡先・正確な住所・生年月日等は保存しない
-  creator_disclosure_enabled BOOLEAN NOT NULL DEFAULT false, -- trueの間だけ任意プロフィールを、現在保有する全XXGGLLの発行者へ開示する
-  creator_disclosure_version TEXT, -- 有効化または無効化時に確認した表示文面の版
-  creator_disclosure_changed_at TIMESTAMPTZ,
+  profile_revision BIGINT NOT NULL DEFAULT 1 CHECK (profile_revision >= 1),
+  creator_disclosure_enabled BOOLEAN NOT NULL DEFAULT true, -- 新規プロフィールの既定。trueの間だけ任意プロフィールを、現在保有する全XXGGLLの発行者へ開示する
+  disclosure_revision BIGINT NOT NULL DEFAULT 1 CHECK (disclosure_revision >= 1),
+  creator_disclosure_version TEXT NOT NULL, -- 有効化または無効化時に確認した表示文面の版
+  creator_disclosure_changed_at TIMESTAMPTZ NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 -- プロフィールの値と共通公開フラグは利用者本人だけが更新できる。発行者ownerへの表示は、現在保有者について
 -- display_name・origin_country_or_regionを常に、その他の入力値をcreator_disclosure_enabled=trueのときだけに限定する。
 -- 有料XXGGLLの取得確定前にdisplay_nameとorigin_country_or_regionが入力済みであることをサーバーで検証する。値は自己申告であり、本人確認には使わない。
+-- 新規account作成時はaccount_profileとenabled=true/source='account_default'のprofile_creator_disclosure_eventを、表示文面版・変更時刻付きで同一トランザクションに作る。
+-- 既存環境の移行では、先にaccount_profile未作成の既存accountをenabled=false、移行用表示文面版・時刻で補完し、source='migration_preserve'の履歴を追加してからDEFAULT trueへ変更する。既存行のfalseをtrueへbackfillしない。
+-- 既存trueは表示文面版・変更時刻がある場合だけ維持する。どちらかが欠けるtrueはfalseへ安全停止し、source='system_safety_disable'で追記する。
+-- source列追加前の既存イベントは、旧仕様で本人のフラグ操作だけを記録していたためsource='user_checkbox'で補完してからNOT NULL制約を適用する。
+-- プロフィール項目更新はexpected profile_revision、共有チェック更新はexpected disclosure_revisionを比較してから、それぞれのrevisionだけを加算する。
 
 CREATE TABLE creator_profile (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -274,7 +298,7 @@ CREATE TABLE creator_staff_permission (
   revoked_at TIMESTAMPTZ,
   PRIMARY KEY (creator_id, account_id, permission)
 );
--- Studio APIは、有効なcreator_staff_memberとこのテーブルの有効なpermission、またはcreator_profile.owner_account_idだけを認可根拠にする。
+-- Creator管理APIは、有効なcreator_staff_memberとこのテーブルの有効なpermission、またはcreator_profile.owner_account_idだけを認可根拠にする。
 
 CREATE TABLE issuance_program (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -377,6 +401,7 @@ CREATE TABLE goods_registration_code (
   code_hash TEXT NOT NULL UNIQUE,
   purchase_reference_hash TEXT NOT NULL UNIQUE,
   product_label TEXT NOT NULL,
+  product_category TEXT NOT NULL CHECK (product_category IN ('music_video','book_print','apparel','accessory','art_collectible','event_goods','digital_goods','other')),
   purchase_source TEXT NOT NULL,
   purchase_amount NUMERIC(14,2),
   purchase_currency CHAR(3),
@@ -389,6 +414,9 @@ CREATE TABLE goods_registration_code (
       AND purchase_amount >= 0 AND purchase_currency ~ '^[A-Z]{3}$')
   )
 );
+-- product_categoryは正規販売元の商品マスタからコード発行時に確定する。product_labelや価格から推測しない。
+-- 既存行は保存済み商品マスタから決定できる場合だけ移行し、決定不能な行は別のunknown隔離記録へ移してAudience集計から除外する。
+-- 移行件数、決定済み件数、隔離件数を値なしで確認するまでグッズ傾向をreleaseしない。
 -- purchase_amountとpurchase_currencyは正規販売元が購入確定時に提供した場合だけ保存する。
 -- 片方だけを保存せず、取得できない場合は両方NULLとして来歴だけへ反映し、支払額グラフには合算しない。
 
@@ -404,6 +432,29 @@ CREATE INDEX idx_goods_purchase_holder ON goods_purchase_record (holder_account_
 -- 登録時はcertificate.current_holder_account_idとholder_account_id、program_idの一致を同じトランザクションで
 -- 確認する。入力された生コードはハッシュ照合後に破棄し、DB・アクセスログ・監査ログへ保存しない。
 -- 購入履歴はholder_account_idに属する個人記録であり、XXGGLLの譲渡先へ引き継がない。
+
+CREATE TABLE creator_audience_release (
+  id BIGSERIAL PRIMARY KEY,
+  creator_id UUID NOT NULL REFERENCES creator_profile(id),
+  program_id UUID REFERENCES issuance_program(id), -- NULLはCreator全体
+  definition_version TEXT NOT NULL,
+  window_started_at TIMESTAMPTZ NOT NULL,
+  release_status TEXT NOT NULL CHECK (release_status IN ('published','partially_suppressed','source_unavailable')),
+  internal_cell_counts JSONB, -- 個人ID・原値を含まない内部差分判定用。公開APIのDB roleはSELECT不可
+  published_payload JSONB NOT NULL, -- 抑制・丸め済みの外部安全なpayloadだけ
+  generated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX idx_creator_audience_release_all
+  ON creator_audience_release (creator_id, definition_version, window_started_at)
+  WHERE program_id IS NULL;
+CREATE UNIQUE INDEX idx_creator_audience_release_program
+  ON creator_audience_release (creator_id, program_id, definition_version, window_started_at)
+  WHERE program_id IS NOT NULL;
+-- program_idがある場合、そのissuance_program.creator_idがcreator_idと一致することを生成transactionで確認する。
+-- 週次jobだけがinternal_cell_countsを読み書きでき、Creator/Ops APIのDB roleはpublished_payloadだけを返すviewへSELECTできる。
+-- internal_cell_countsはカテゴリIDと人数だけを持ち、account/certificate ID、プロフィール原値、メッセージ、個人額を含めない。
+-- 新しい週の公開確定後、window_started_atが直近3週より古い行のinternal_cell_countsをNULLへ更新する。published_payloadは基準時刻とともに保持する。
+-- 同じscope・version・週の再実行は既存行をロックし、同じsource revisionなら同じ結果を返す。異なる結果で上書きせずjobを失敗させる。
 
 CREATE TABLE concierge_case (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -615,11 +666,12 @@ CREATE TABLE profile_creator_disclosure_event (
   account_id UUID NOT NULL REFERENCES account(id),
   enabled BOOLEAN NOT NULL,
   disclosure_version TEXT NOT NULL,
+  source TEXT NOT NULL CHECK (source IN ('account_default','user_checkbox','migration_preserve','system_safety_disable')),
   changed_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_profile_creator_disclosure_event_account_changed
   ON profile_creator_disclosure_event (account_id, changed_at DESC);
--- このテーブルは追記専用の変更履歴である。現在状態はaccount_profile.creator_disclosure_enabledを参照する。
+-- このテーブルは追記専用の変更履歴である。現在状態はaccount_profile.creator_disclosure_enabledを参照する。同じ確定状態の再送では行を追加しない。
 -- 開示資格は「当該certificateのcurrent_holder_account_idがaccount_idであり、当該issuance_programのcreator_profile.owner_account_idが
 -- 読取り要求者であること」とする。特定の証票へ同意を紐づけず、Creatorごとの同意・項目ごとの同意は保持しない。
 -- アカウント名（display_name）・出身国地域（origin_country_or_region）は公開フラグにかかわらず返す。他のfield_valuesは
@@ -647,6 +699,7 @@ CREATE INDEX idx_support_expression_creator_visible
 -- 応援表現は現保有者の有料証票にだけ紐づき、譲渡時に前保有者の表現・表示名・属性・公開設定を引き継がない。
 -- 保存前に、個人連絡先、外部決済、面会要求、性的要求、脅迫・恐喝、差別・ヘイト、詐欺・勧誘を検知して拒否する。
 -- creatorが読めるのはshare_with_creator=trueで明示共有された現保有者の表現だけであり、非共有・PII・決済情報は返さない。
+-- RM-CreatorAudienceV1、Creator概要、発行一覧にはこのtableの行・件数・本文を含めない。契約・安全・permissionが定義された専用message read modelだけが参照できる。
 
 CREATE TABLE secondary_listing (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

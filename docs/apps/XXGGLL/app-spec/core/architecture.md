@@ -16,13 +16,13 @@ draft: true
 | 決済データ | カード情報・銀行口座情報は自社インフラを通過させない。決済代行はStripe Connectを使用し、通貨はJPYに固定する。自前の決済基盤は作らない |
 | 決済の受け取りタイミング | 一次発行・継続支援・証票支援・二次流通の再発行価格は、運営が売上としてStripeの運営プラットフォーム残高へ受領する（Separate Charges and Transfers）。二次流通の前保有者には現金送金を行わず、再発行クレジットを付与する。クリエイターには別契約に基づく報酬・別契約対価を、通常は決済確定から90日経過後の本人の出金申請時にだけ送金する。Stripe側の本人・口座確認・サービス契約同意はこの申請時に発生する。精算先は日本・JPYのConnected Accountに限定する |
 | クライアント | Web。対応言語は日本語のみとする |
-| 運営系アクセス | Opsシェル（`/ops`）はPublic/Fan/Studioと別のHTTPS Originで提供する。環境ごとに完全一致の`OPS_ORIGIN`と、そのホスト名に固定した`OPS_RP_ID`を設定し、起動時・プロキシで不一致と許可外Hostを拒否する。登録済みWebAuthnパスキーの利用者検証で作成した専用Opsセッションだけを受け付け、通常ログインとDB資格情報を共有しない |
+| 運営系アクセス | Opsシェル（`/ops`）はPublic/Fan/Creator管理と別のHTTPS Originで提供する。環境ごとに完全一致の`OPS_ORIGIN`と、そのホスト名に固定した`OPS_RP_ID`を設定し、起動時・プロキシで不一致と許可外Hostを拒否する。登録済みWebAuthnパスキーの利用者検証で作成した専用Opsセッションだけを受け付け、通常ログインとDB資格情報を共有しない |
 
 ```text
 一般ユーザー / クリエイター                運営担当者（スマートフォン等のパスキー）
         │ HTTPS                                      │ HTTPS + WebAuthn利用者検証
         v                                             v
-Public / Home / Studio Origin                    Ops Origin
+Public / Home / Creator管理 Origin                    Ops Origin
         │ 通常認証セッション                            │ 専用Opsセッション
         └──────────────────────┬──────────────────────┘
                                v
@@ -56,7 +56,7 @@ Public / Home / Studio Origin                    Ops Origin
 | 発行者向け開示 | 自動開示、共通公開フラグの変更履歴、現在保有者・owner照合、譲渡時の即時終了、匿名集計ダッシュボードの生成 | 同上 |
 | モデレーション | 私的連絡先・禁止表現の自動検出、通報・非表示キュー | [関係記録・コンテンツ](../../concept/benefits/content.md) |
 | VIPコンシェルジュ | 専用スレッドの状態遷移、匿名打診、最終条件の合意記録 | [VIPコンシェルジュ運用](../../concept/vip/vip-concierge.md) |
-| Ops | adminの参照・運用操作。creator_staffはStudioで許可範囲だけを扱う。すべての操作を監査ログへ記録 | [セキュリティ](../security/overview.md) |
+| Ops | adminの参照・運用操作。creator_staffはCreator管理で許可範囲だけを扱う。すべての操作を監査ログへ記録 | [セキュリティ](../security/overview.md) |
 
 ## アクセス制御
 
@@ -64,7 +64,7 @@ Public / Home / Studio Origin                    Ops Origin
 - 認証継続先は同一Originの許可済み相対パスだけをサーバー側で受け付ける。クエリ文字列だけを信頼して外部URLや別対象へ遷移しない。
 - 利用者・クリエイター向けAPIはカード情報・本人確認書類を直接扱わない。決済情報と報酬受領確認はStripeの
   ホスト型画面へ委譲し、XXGGLLは必要なトークン・状態だけを受け取る。
-- Opsはadminだけが使う。専用HTTPS Originで検証したパスキーから作成したOpsセッションだけを認可に使い、通常の利用者・Creatorセッションは流用しない。全Ops read/writeは共通の認可境界で現在のsession、credential、adminロールを結合して再確認し、失効操作とsession無効化は同一トランザクションで扱う。creator_staffはStudioで、自分に許可されたクリエイターの範囲だけを扱う。
+- Opsはadminだけが使う。専用HTTPS Originで検証したパスキーから作成したOpsセッションだけを認可に使い、通常の利用者・Creatorセッションは流用しない。全Ops read/writeは共通の認可境界で現在のsession、credential、adminロールを結合して再確認し、失効操作とsession無効化は同一トランザクションで扱う。creator_staffはCreator管理で、自分に許可されたクリエイターの範囲だけを扱う。
 - OpsブラウザはDBへ直接接続せず、DB接続資格情報はRailwayのサーバー処理だけが保持する。PostgreSQLは公開接続を提供せず、Opsのread model・更新処理を通じてだけ本番データを扱う。
 - クリエイター向け画面・APIは、法的氏名・住所・本人確認書類・決済カード情報を一切返さない
   （構想の原則をAPI応答レベルで強制する）。
@@ -76,13 +76,13 @@ Public / Home / Studio Origin                    Ops Origin
 | Public個別入口 | `public_entry_link`の生トークンをハッシュ照合した一件 | 公開中有料プログラムの対象、ランク、価格、残数、取得条件 | 他プログラム、他クリエイター、保有者、需要・人気一覧、無効理由 |
 | Home | セッション本人 | 本人の`certificate`一件ごとの現在状態と、管理可能な`issuance_program`一件ごとの公開・発行状態 | 他人の対象、公開一覧、`creator_profile`を発行カードに代用する件数要約 |
 | 保有証票詳細 | セッション本人と`certificate.id` | 現在状態、番号、支払済み期限、次回決済、公開可能な`certificate_event` | 前保有者の個人情報、支援額、属性、メッセージ |
-| Studio | セッションのcreator membershipとpermission | 一つの発行プログラム、匿名集計、収益、提供物、スレッドのうち許可された範囲 | 個人支援者一覧、匿名識別子検索、未同意プロフィール、決済情報 |
+| Creator管理 | セッションのcreator membershipとpermission | 一つの発行プログラム、匿名集計、収益、提供物、スレッドのうち許可された範囲 | 個人支援者一覧、匿名識別子検索、未同意プロフィール、決済情報 |
 | Ops | adminセッション | 優先キュー、一件の対象・理由・期限・影響・状態・監査参照 | 一般利用者向けナビ、無関係な全データ、一括確定フォーム |
 
 ## 非目標
 
 - マイクロサービス分割、複数運用者・複数承認ロールを前提とする専任コンソール、承認ワークフローエンジン、改ざん検知基盤など、
-  運用規模に見合わない基盤は最初から作らない。Public、Home、Studio、単一admin用Opsという定義済みシェルはこの非目標に含めない。
+  運用規模に見合わない基盤は最初から作らない。Public、Home、Creator管理、単一admin用Opsという定義済みシェルはこの非目標に含めない。
 - NFT・暗号資産基盤は使わない（[コンセプト](../../concept/foundation/concept.md)）。
 - クリエイター向けにCSV等の一括エクスポートを既定で提供しない（[一般クリエイター](../../concept/general/creator-general.md)）。
 - クライアント側での価格・発行数計算は行わない。算出はサーバー側モジュールに閉じる。

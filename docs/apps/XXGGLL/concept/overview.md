@@ -19,6 +19,7 @@ XXGGLL（シギル）は、ユーザーがクリエイターへの応援を公�
 | 分野 | ページ |
 |---|---|
 | サービスの目的・設計原則 | [コンセプト](./foundation/concept.md) |
+| 体験の世界観・視覚モチーフ | [世界観コンセプト](./foundation/worldview.md) |
 | ランク・発行上限・主体 | [ランク・発行上限](./foundation/ranks.md) |
 | 属性共有・同意・決済事業者確認 | [属性開示・決済事業者確認](./foundation/identity-disclosure.md) |
 | 証票・個人支援記録・応援表現 | [関係記録・コンテンツ](./benefits/content.md) |

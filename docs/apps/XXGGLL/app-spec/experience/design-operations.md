@@ -1,384 +1,328 @@
 ---
-title: XXGGLL AIデザイン運用
-sidebar_label: AIデザイン運用
-sidebar_position: 9
+title: XXGGLL デザイン運用
+sidebar_label: デザイン運用
+sidebar_position: 32
 draft: true
 ---
 
-# XXGGLL AIデザイン運用
+# XXGGLL デザイン運用
 
-## 1. 目的と適用範囲
+## 1. 目的と責務
 
-この文書は、LLMがXXGGLLのUIコードを変更・レビューするときの作業手順、証拠、判定、
-例外、引き継ぎを定義する。
+本書は、デザインとCSSを変更するときの変更記録、検証、レビュー、合否、切り戻しを定義する運用仕様である。視覚の正解は[デザイン仕様](./design.md)、CSSの実装契約は[CSS実装仕様](./css.md)、利用者の導線と状態は[UX](./ux.md)および[画面台帳](./screen-catalog.md)が所有する。
 
-対象は、`C:\dev\xxrrgg`の画面、コンポーネント、`app/globals.css`、画面に出る文言、
-ナビゲーション、ローディング・エラー・権限なし表示、画面状態に影響するサーバー応答である。
+本書に、色、装飾、画面モード、コンポーネントの見た目を追加しない。運用上それらが不足している場合は、所有する正本を更新し、その変更を本書の検証対象へ追加する。
 
-デザインルールは[デザインルール](./design.md)を正本とし、この文書はその運用正本とする。
+## 2. 変更前に作る記録
 
-## 1.1 役割と最小承認
-
-| 役割 | 担当 | 責任 |
-| --- | --- | --- |
-| 実装者 | LLM | 画面契約、コード変更、機械検証、自己レビュー |
-| レビュアー | 別のLLMパスまたは新しいコンテキストのLLMパス | 差分、証拠、正本仕様から独立に判定 |
-| 所有者 | 開発者本人 | S3、WAIVED、BLOCKED解除、公開影響の最終判断 |
-
-S0〜S2は、必要な証拠が揃っていれば、所有者の逐次承認を要求せず記録で進めてよい。
-S3または`WAIVED`だけは所有者の明示確認を必須とする。これが一人開発での最小ゲートである。
-
-同じLLMがレビュアーを兼ねる場合、実装時の要約や結論を前提にしない。レビューパスへ渡すのは、
-正本仕様、変更差分、実行結果、実画面証拠、未解決事項だけとする。
-
-## 1.2 証拠の保存と安全
-
-変更ごとに、実装リポジトリの次の場所を証拠の標準保存先とする。
+実装や仕様変更を始める前に、変更記録をIssueまたは作業ブランチへ作成する。空欄のまま実装を開始してはならない。
 
 ```text
-C:\dev\xxrrgg\docs\design-evidence\<issue-or-pr-id>\
-  record.md
-  commands\
-  screenshots\
-```
+## Design change record
 
-`record.md`は必須とし、コマンド出力は`commands`、実画面は`screenshots`へ保存する。
-PRへ直接添付する場合も、`record.md`から参照できる証拠IDを付ける。
+Owner:
+Implementer:
+Independent reviewer:
+Risk: T0 / T1 / T2 / T3
+Date:
 
-- 本番データ、実利用者の個人情報、秘密鍵、Cookie、決済秘密情報を証拠へ保存しない。
-- 実画面はローカルまたはdev環境、テストアカウント、Stripe test modeを使う。
-- コマンド出力を保存する前に、環境変数、トークン、メールアドレス、外部IDを確認する。
-- 証拠を保存できない場合は、保存したことにせず`NOT VERIFIED`とする。
+Routes:
+Components:
+Roles / boundary:
+data-shell:
+data-ui-mode:
 
-## 2. 合格の定義
+Canonical sources:
+- Screen catalog:
+- UX:
+- Design:
+- CSS implementation:
 
-合格は「コードが変更された」「コマンドが一つ通った」「スクリーンショットがきれいだった」ではない。
-次のすべてを満たした状態だけを`PASS`と呼ぶ。
-
-1. 変更範囲と対象画面が特定されている。
-2. 影響する正本仕様とデザインルールIDが記録されている。
-3. 機械検証が、変更範囲に必要なレベルで成功している。
-4. 対象状態を実画面で確認している。
-5. 権限、失敗、再試行、反映待ち、狭い幅を確認している。
-6. LLMの自己レビューと、独立レビューが区別されている。
-7. 未検証、例外、既知の差分が隠されていない。
-
-`NOT VERIFIED`、`BLOCKED`、`WAIVED`は`PASS`の別名ではない。
-
-## 3. 変更の分類と必要な検証
-
-| レベル | 変更例 | 必須検証 |
-| --- | --- | --- |
-| S0 | 文書だけ、画面に出ない内部整理 | `git diff --check`、リンク確認 |
-| S1 | 文言、既存トークン、既存部品の軽微な見た目変更 | 機械検証、対象画面1つ、幅320/390/1440 |
-| S2 | 新規画面、状態追加、共通部品、ナビゲーション変更 | S1 + 全状態、アクセシビリティ、単体・統合テスト、ビルド |
-| S3 | Public、決済、認証、権限、属性、個人情報、VIP、運用操作 | S2 + 正本仕様照合、境界・失敗経路、独立レビュー、例外なし |
-
-LLMは変更をS0やS1に過小分類してはならない。判断に迷う場合は上位レベルにする。
-
-## 4. 実装ワークフロー
-
-### Step 0 — 作業境界を確定する
-
-LLMは、最初に次を読む。
-
-- リポジトリの`AGENTS.md`
-- [XXGGLLアプリ仕様](../overview.md)
-- 変更対象に応じたUX、要件、コントロール、セキュリティ
-- [デザインルール](./design.md)
-- 実装対象の既存ページ、共通CSS、共通部品、API、テスト
-
-変更前に次を記録する。
-
-```text
-Change scope:
-Risk level: S0 / S1 / S2 / S3
-Target shell and role:
-Target route or component:
-Canonical references:
-Design rule IDs:
-Known existing behavior:
-Expected changed behavior:
+Changed selectors / tokens:
+States:
+Primary action:
 Out of scope:
+Rollback unit:
 ```
 
-### Step 1 — 画面契約を作る
+`Out of scope`には、今回触らないURL、業務状態、認可、データ、旧`/studio`互換ルートなどを明記する。仕様変更と既存実装の移行を同じ完了扱いにしない。
 
-画面単位で、次の表を埋める。空欄を推測で埋めず、正本仕様を更新するか、`BLOCKED`にする。
+## 3. 変更リスクの分類
 
-| 項目 | 記録内容 |
+| 分類 | 対象 | 必須の証拠 | 完了条件 |
+| --- | --- | --- | --- |
+| `T0` | Markdown、文言、リンク、CSSコメントだけ | diff、リンク検査、MDX検査 | 文書検証がPASS |
+| `T1` | 既存token、primitive、単一画面の静的見た目 | diff、静的CSS検査、1440/390/320の実画面 | 対象状態とfocusがPASS |
+| `T2` | shell、共通部品、mode、responsive、複数画面 | T1、typecheck、test、accessibility、全状態、独立レビュー | 全マトリクスとレビューがPASS |
+| `T3` | Public、認証、Creator管理、Ops、権限、プロフィール開示、決済、役務境界 | T2、正本照合、失敗・再試行・競合・監査、所有者確認、CI | release gateがPASS |
+
+迷ったら上位に分類する。見た目だけの変更でも、利用者が状態、料金、権限、共有範囲、役務を誤認する可能性があれば`T3`とする。
+
+## 4. 作業手順
+
+### 4.1 正本と現状を確認する
+
+次の順で読む。画面台帳にない状態を、CSSの都合で新設してはならない。
+
+1. [画面・体験仕様の概要](./overview.md)
+2. [画面台帳](./screen-catalog.md)
+3. [UX](./ux.md)
+4. [デザイン仕様](./design.md)
+5. [CSS実装仕様](./css.md)
+6. 影響する`core`、`security`、個別画面仕様
+
+次の現状差分を記録する。
+
+| 確認 | 記録するもの |
 | --- | --- |
-| 対象 | 何を表示・操作する画面か |
-| 利用者 | Fan、Creator、admin、未認証者 |
-| 見せない相手 | 存在も返さない相手 |
-| 主要事実 | 最初に理解する対象、状態、条件 |
-| 主要操作 | 1画面で最優先の操作 |
-| レイアウト | `reading`、`workspace`、`detail`、`operation`のいずれか。共通フレーム上の配置 |
-| テンプレート | デザイン仕様の`T-*`テンプレートID |
-| 共通部品 | `PageHeader`、`StatusMessage`、`FactList`、`EntityList`、`Timeline`、`FormSection`など使用する契約部品 |
-| 確定条件 | 金額、期限、同意、取消条件、権限 |
-| 状態 | loading、empty、processing、pending、success、attention、unauthorized |
-| 失敗 | 原因、影響、復帰方法、再送可否 |
-| 証拠 | コード、API、テスト、実画面の確認場所 |
+| route | URL、互換route、画面rootの`data-shell` |
+| DOM | `data-ui-mode`、state attribute、primary action、interactive要素 |
+| CSS | import元、token所有者、selector所有者、旧`studio-*`の残存 |
+| 状態 | loading、empty、processing、pending、success、attention、error、conflict、expired、unauthorized |
+| 境界 | 未認証、Fan、Creator owner/staff、admin、Ops、公開範囲 |
 
-### Step 2 — 実装する
+### 4.2 仕様を先に更新する
 
-LLMは次を守る。
+次の変更は、それぞれの正本を先に更新する。
 
-- 既存部品、既存トークン、既存の状態表示を先に探す。
-- 新規の色、影、角丸、フォント、カード、ボタンを追加する前に理由を書く。
-- UIの見た目だけで権限を表現せず、サーバー側の認可を確認する。
-- APIの存在、レスポンス、状態値、エラーコードを確認せずにラベルを決めない。
-- 決済・Webhook・更新の成功表示をクライアントイベントだけで追加しない。
-- 仕様違反を見つけた場合、隠して進めず、影響範囲を記録する。
+| 変更 | 更新する正本 |
+| --- | --- |
+| 利用者の問い、導線、表示順、画面責務 | UX、画面台帳 |
+| token、primitive、button/table/statusの状態、効果上限 | デザイン仕様、CSS実装仕様 |
+| CSSファイル、DOM、selector、import、breakpoint、検証ケース | CSS実装仕様 |
+| 変更の証拠、合否、レビュー、切り戻し | 本書 |
+| 認可、read model、個人情報、監査、役務境界 | `core`、`security`、各正本 |
 
-### Step 3 — 変更差分を静的に検査する
+同じ値・状態・手順を複数文書へ複製しない。参照先が変わった場合はリンクを直し、要約側に別の値を残さない。
 
-最低限、次を実行する。実行できなかったコマンドは失敗ではなく`NOT VERIFIED`として記録し、
-成功したことにしてはならない。
+### 4.3 実装前の機械検査
+
+CSS変更前に、既存のtoken・primitive・effectを検索する。出力に秘密値、Cookie、個人情報を含めない。
+
+```powershell
+rg -n -- "--xx-|--color-|--home-|color:|background:|border:|box-shadow|filter|gradient|animation|@media" app/styles app/globals.css
+rg -n -- "\.site-header|\.site-nav|\.brand|\.button|\.data-table|studio-|shell-" app/styles app
+```
+
+次のいずれかを追加する場合、T1以上として扱う。
+
+- token以外の直接色値、shadow、gradient、filter、animation
+- 新しいshell、mode、status、button variant
+- `.xx-*`以外の共通selector
+- hoverだけで意味を変える規則
+- 320px、focus-visible、reduced motion、forced colorsに関する規則
+
+### 4.4 実装と局所検証
+
+CSS実装は[CSS実装仕様](./css.md)の移行順に従い、token、shell、primitive、effect、routeの順に進める。一つの変更で複数の移行段階を跨がない。
+
+最低限のローカル検証は次のとおりとする。リポジトリで利用可能なコマンドだけを実行し、未実行は合格扱いにしない。
 
 ```powershell
 git diff --check
-git diff --stat
-git diff -- <changed-files>
-rg -n "#[0-9a-fA-F]{3,8}|rgba?\(|hsla?\(" app src
-rg -n "gradient|box-shadow|text-shadow|color-scheme|font-family" app/globals.css app
-rg -n -- "--(cyan|magenta|amber|danger|success|font-display|font-mono|shadow)" app src
-rg -n "<button|<a |<Link |<input|<select|<textarea|<h1|<main|aria-|role=" app
-rg -n "export async function (GET|POST)|fetch\(|href=|<Link |\.map\(" app src
+npm run typecheck
+npm test
 ```
 
-デザインルールに反する直接値、公開一覧、危険操作、状態の潰れを見つけた場合、単に見た目の問題として扱わない。
-必要なら`requirements.md`、`ux.md`、`controls.md`との矛盾としてレビューする。
-
-### Step 4 — 既存検査を実行する
-
-S2以上、またはアクセシビリティ・状態・API・権限に触れた変更では、実装リポジトリで次を実行する。
+CSS、focus、form、状態表示に影響する場合は次も実行する。
 
 ```powershell
-npm run typecheck
 npm run accessibility:check
-npm test
-npm run test:integration
-npm run build
 ```
 
-統合テストに必要なデータベースや環境変数がない場合は、テストを飛ばして合格にしない。
-実行結果と不足環境を記録する。push前のリポジトリ規約がある場合は、その規約を優先する。
+`npm run test:integration`と`npm run build`はCIで実行する。ローカル未実行を理由に無条件でFAILとはしないが、CI結果がない間は`NOT VERIFIED`とする。
 
-### Step 5 — 実画面を確認する
+### 4.5 実画面の確認
 
-機械検証の後、LLMまたはレビュアーは実行中アプリをブラウザで確認する。
-確認幅を固定する。
+次の組み合わせを、変更した画面と共通部品の全てで確認する。
 
-| 幅 | 用途 |
+| 軸 | 必須値 |
 | --- | --- |
-| 1440px | デスクトップの情報階層、余白、ナビゲーション |
-| 390px | 一般的なモバイル操作、下部ナビゲーション |
-| 320px | 最小幅、主要操作、長い日本語の折返し |
+| viewport | 1440px、1024px、768px、390px、320px |
+| mode | `standard`、影響する特殊mode、`operation` |
+| state | 初期、loading、empty、正常、processing、pending、success、attention、error、再試行、conflict、expired |
+| identity | 未認証、Fan、Creator owner、Creator staff、admin、Ops |
+| input | mouse hover、keyboard focus-visible、touch、reduced motion、forced colors |
 
-同じ変更で複数画面を扱う場合は、代表する`reading`、`workspace`、`detail`、`operation`を一枚ずつ並べて比較する。ページ見出しの開始位置、説明文の幅、主要操作の位置、セクション間隔、状態部品、モバイルでの折りたたみ順が共通フレームから外れていないことを確認する。各画面が単独で見やすいだけでは一貫性の合格としない。
-
-最低限、変更に該当する次の状態を確認する。
-
-- 初期表示、読み込み中、空
-- 正常系、処理中、反映待ち、成功
-- 入力エラー、サーバーエラー、再試行
-- 権限なし、未認証、調査中、期限切れ
-- 決済・更新・返還・再発行に該当する場合は、二重操作と再課金防止
-
-各状態について、次を保存またはレビュー記録へ転記する。
+各ケースに期待結果と観測結果を残す。
 
 ```text
-Viewport:
 Route:
+Viewport:
 Role / session:
+Mode:
 State:
+Input / preference:
 Expected:
 Observed:
 Primary action:
-Unexpected disclosure:
-Screenshot or browser evidence:
-Result: PASS / FAIL / NOT VERIFIED
+Boundary or disclosure checked:
+Screenshot / browser evidence:
+Result: PASS / FAIL / NOT VERIFIED / BLOCKED / WAIVED
 ```
 
-実画面証拠は、`docs/design-evidence/<issue-or-pr-id>/screenshots/`へ、
-`<route>-<role>-<state>-<viewport>.png`の形式で保存する。画像を保存できない場合は、
-ブラウザ操作結果をレビュー記録へ具体的に転記し、`NOT VERIFIED`を残す。
+スクリーンショットは実装リポジトリの`docs/design-evidence/<issue-or-pr-id>/`へ保存する。秘密値、Cookie、実利用者の個人情報、決済秘密情報を保存しない。証拠が不要なT0を除き、実画面を見ていない状態で`PASS`を付けない。
 
-ブラウザを起動できない、認証状態を再現できない、対象データを用意できない場合は`BLOCKED`とする。
-コードを読んだだけで実画面を見たことにしてはならない。
+## 5. CSS合否基準
 
-### Step 6 — LLM自己レビュー
+### 5.1 機械検査
 
-LLMは、実装完了報告の前に次を回答する。
+| 検査 | PASS条件 |
+| --- | --- |
+| import | `app/globals.css`がCSS実装仕様の順序と一致 |
+| token | `--xx-*`の定義はtokenファイルだけ。route再定義なし |
+| selector | 共通primitiveの所有ファイルが一つ。旧selectorの残存理由が記録済み |
+| effect | `standard`と`operation`にscanline、glitch、glowがない |
+| legacy | 新規`studio-*`、旧shell名、直接色値、`!important`が例外台帳なしにない |
+| diff | `git diff --check`が成功 |
 
-- 変更した画面・状態・コンポーネントは何か。
-- どのデザインルールIDを満たしたか。
-- どのルールIDをコードで検証できたか。
-- どのルールIDを実画面で検証したか。
-- 機械検証のコマンドと結果は何か。
-- 失敗経路、権限境界、再試行、狭い幅を確認したか。
-- 既存仕様と矛盾する箇所はないか。
-- 未検証、例外、既知の差分は何か。
+### 5.2 実画面
 
-自己レビューは、作業中に見つけた問題を削除してから書くものではない。修正前後の事実を残す。
+| 対象 | PASS条件 |
+| --- | --- |
+| 情報順 | 対象、状態、条件、主操作が装飾なしでも同じ順序で読める |
+| state | 状態名と形状があり、色・発光・animationを無効にしても意味が残る |
+| action | primaryは画面1つ、44px以上、disabled/processingで二重送信できない |
+| focus | keyboardで現在位置が見え、focus輪郭が遮蔽されない |
+| responsive | 320pxで横スクロール、重なり、主要操作の画面外化がない |
+| motion | reduced motionでglitch、scanline、順次明転が止まり、情報が残る |
+| forced colors | 境界、status、focus、disabledの意味が残る |
+| boundary | 未認証、権限外、共有範囲、Opsに誤認させる演出がない |
 
-### Step 7 — 独立レビュー
+### 5.3 判定値
 
-同じLLMがレビューする場合でも、実装時の前提をいったん捨て、変更差分から再確認する。
-レビューは次の順に行う。
+| 判定 | 意味 | 完了可否 |
+| --- | --- | --- |
+| `PASS` | 必須検証が実施され、期待結果と観測結果が一致 | 完了可 |
+| `FAIL` | 期待結果と不一致。修正して再検証する | 不可 |
+| `NOT VERIFIED` | 必要な画面、状態、CI、レビューの証拠が不足 | 不可 |
+| `BLOCKED` | 認証、環境、外部サービス、テストデータなどが不足 | 不可。再開条件が必要 |
+| `WAIVED` | 責任者、理由、期限、代替防御が記録された例外 | 所有者確認が必要 |
 
-1. 正本仕様との矛盾
-2. 閲覧境界・個人情報・役務境界
-3. 状態と失敗経路
-4. コード上の静的証拠
-5. 実画面の証拠
-6. 審美・情報階層
-7. テスト・CI・引き継ぎ
+「見た目は問題なさそう」「既存と同じ」「CIをまだ見ていない」は判定理由にならない。
 
-レビューの指摘には、必ずルールID、ファイル、行または見た画面、失敗条件、最小修正を付ける。
-「好みではない」は指摘として採用しない。
+## 6. 独立レビュー
 
-独立レビューの結果は、実装者の自己レビューと別の見出しで保存する。実装者の「問題なし」を
-再掲するだけの確認は、独立レビューとみなさない。
+実装者と別の観点で、差分を次の順に読む。一人運用の場合も、実装を止めて別のレビュー工程として時間を分け、レビュー記録を残す。
 
-## 5. 機械検証と人間検証の境界
+1. 正本の責務境界：UX、デザイン、CSS、運用が混ざっていないか
+2. 実装契約：DOM、selector、token、import、breakpointがCSS実装仕様と一致するか
+3. 状態：正常、空、処理中、失敗、再試行、競合、期限切れ、権限なしがあるか
+4. 入力：hoverだけでなくfocus-visible、keyboard、touchで成立するか
+5. 環境：320px、reduced motion、forced colors、dark/light設定差があるか
+6. 境界：公開、認証、Creator管理、Ops、プロフィール開示、決済、役務を誤認させないか
+7. 証拠：コマンド出力、実画面、CI、未検証、切り戻し条件が記録されているか
 
-### LLM・CIで確認できるもの
-
-- 直接色値、未承認の効果、トークン未使用の検出
-- `main`、`h1`、フォームラベル、フォーカス、reduced motion等の静的要件
-- TypeScript、単体テスト、統合テスト、ビルド
-- ルート、API、認可関数、状態値、エラーコードの参照関係
-- 仕様リンク、変更ファイル、差分の漏れ
-
-### 実画面を見ないと確認できないもの
-
-- 文字の重なり、切れ、折返し、余白、整列
-- 画面幅ごとのナビゲーションと主要操作
-- 状態の視認性と誤認のしやすさ
-- 情報の優先順位
-- ネオン、影、画像、アニメーションが作る印象
-- 「役務や接触を保証しているように見えない」こと
-
-### 体験評価が必要なもの
-
-- 何をすべきか迷わないか
-- 金額・期限・取消条件を理解できるか
-- 不安、煽り、序列、投機を過剰に感じないか
-- 失敗後に安全に復帰できるか
-
-体験評価を機械検証の代用にしない。機械検証を体験評価の代用にもしない。
-
-## 6. 例外と未検証の扱い
-
-### NOT VERIFIED
-
-証拠が不足している状態。合格不可。必要な証拠、取得できない理由、再確認条件を書く。
-
-### BLOCKED
-
-環境、認証、外部サービス、テストデータ、ツール不足により検証できない状態。回避策を勝手に作らず、
-不足している外部条件と、再開に必要な作業を書く。
-
-### WAIVED
-
-ルール違反を期限付きで認める場合だけ使用する。次の全項目を記録する。
-
-- ルールID
-- なぜ必要な例外か
-- 利用者・安全・法務への影響
-- 代替の防御または検証
-- 責任者
-- 期限
-- 期限後の対応
-
-期限のない例外、理由のない「デザイン上の判断」、LLM自身だけの承認は認めない。
-
-## 7. 変更記録テンプレート
-
-Issue、PR、または実装完了報告へ、次の形式で記録する。
+findingは次の形式で記録する。
 
 ```text
-## AI design change record
+Severity: S0 / S1 / S2 / S3
+Location: file, selector, route, or state
+Failure condition:
+Impact:
+Minimal correction:
+Required re-check:
+```
 
-Scope: S0 / S1 / S2 / S3
-Routes / components:
-Role and boundary:
+「好みではない」「もっと派手に」はfindingにしない。仕様のID、失敗条件、利用者影響へ変換できる場合だけ記録する。
+
+## 7. release gate
+
+次の一つでも該当する場合、変更を完了・リリース可と報告してはならない。
+
+- 正本同士が矛盾し、どの文書を直すか決まっていない。
+- DOMまたはselectorがCSS実装仕様と異なる。
+- T2/T3でtypecheck、test、accessibility、実画面、独立レビューのいずれかが未実施・失敗。
+- CIのintegration/buildが未確認なのに`PASS`としている。
+- 320pxで主要操作、状態、エラーが確認できない。
+- focus、reduced motion、forced colorsで情報または操作が失われる。
+- standardまたはOpsへ特殊効果が漏れている。
+- 旧Creator管理表示、旧shell名、旧selectorが移行課題として記録されていない。
+- 変更理由、影響範囲、切り戻し単位が残っていない。
+
+## 8. 切り戻し
+
+### 8.1 CSSだけの変更
+
+1. 失敗したviewport、route、state、roleを変更記録へ追記する。
+2. 新しいeffect、route import、primitive変更のうち、失敗した単位だけを無効化する。
+3. 旧CSSへ戻す場合は、旧importと新importを同時に有効にしない。
+4. `git diff --check`、typecheck、test、影響画面の実画面確認を再実行する。
+5. 切り戻し後の状態を`PASS`ではなく、原因修正前は`NOT VERIFIED`として残す。
+
+### 8.2 DOMまたは状態契約を含む変更
+
+DOM、認可、業務状態をCSSだけで隠してはならない。CSS変更を切り戻した後も、利用者データ、URL、監査記録を破壊しない。状態契約が壊れている場合は、実装の切り戻しと正本の修正を別の変更として扱う。
+
+### 8.3 特殊効果の緊急停止
+
+特殊効果が可読性、操作、Ops、エラー表示を損なった場合、効果のimportまたはmode付与だけを停止できる構造にする。効果停止後も、境界、status、focus、主要操作、エラー文言が残ることを確認する。
+
+## 9. 定期監査
+
+次のいずれかの時点で、CSS実装仕様との乖離を監査する。
+
+- T2/T3の変更を完了するとき
+- CSS変更が5件累積したとき
+- `studio-*`または重複shell selectorが見つかったとき
+- 同じレビューfindingが2回発生したとき
+
+監査では次を確認する。
+
+```powershell
+rg -n -- "--xx-|--color-|--home-" app/styles app/globals.css
+rg -n -- "studio-|\.site-header|\.site-nav|\.brand|!important" app/styles app
+rg -n -- "data-shell=|data-ui-mode=|data-status=|data-interactive=" app
+```
+
+同じfindingが2回発生した場合、運用で注意喚起するだけで終わらせず、CSS実装仕様、受け入れ条件、またはDOM契約を更新する。
+
+## 10. 変更記録の完了テンプレート
+
+```text
+## Verification result
+
+Risk: T0 / T1 / T2 / T3
+Changed files:
+Changed routes / components:
 Canonical references:
-Design rules: D-xx, D-xx
 
-### Contract
-- Primary subject:
-- Primary fact:
-- Primary action:
-- States:
-- Error and retry behavior:
+### Static
+- git diff --check:
+- npm run typecheck:
+- npm test:
+- npm run accessibility:check:
+- CI integration/build:
 
-### Static evidence
-- Command:
-- Result:
-- Changed files:
-
-### Runtime evidence
-- Viewports: 1440 / 390 / 320
-- Roles and states checked:
-- Screenshots or browser evidence:
+### Runtime matrix
+- 1440px:
+- 1024px:
+- 768px:
+- 390px:
+- 320px:
+- keyboard / focus-visible:
+- prefers-reduced-motion:
+- forced-colors:
 
 ### Review
-- Self-review:
-- Independent review:
+- Independent reviewer:
 - Findings:
-- Exceptions / NOT VERIFIED / BLOCKED:
+- Responses:
+- Unresolved NOT VERIFIED / BLOCKED / WAIVED:
+
+### Rollback
+- Rollback unit:
+- Trigger:
+- Recovery check:
 
 Verdict: PASS / FAIL / NOT VERIFIED / BLOCKED / WAIVED
 ```
 
-## 8. リリースゲート
+## 11. レビュー応答
 
-次のどれかに該当する場合、デザイン変更を完了扱いにしない。
-
-- 正本仕様との矛盾が未解決
-- S2/S3で機械検証が未実行または失敗
-- 変更した状態を実画面で確認していない
-- 権限なし・失敗・反映待ちの表示がない
-- 320pxで主要操作を完了できない
-- スクリーンショットやブラウザ証拠を捏造・推測している
-- 例外が期限・責任者・代替防御なし
-- 実装者の自己レビューしかなく、独立レビューがない
-- S3または`WAIVED`なのに所有者の明示確認がない
-
-## 9. 運用改善の責任
-
-この運用を続けるため、次の変更があったら本書を更新する。
-
-- 新しいシェル、ロール、状態、決済フローの追加
-- 新しい共通コンポーネント、デザイントークン、視覚検査の追加
-- CIコマンド、ブラウザ検証手段、スクリーンショット保管場所の変更
-- 正本UX・要件・コントロールの変更
-- 同じ種類のレビュー指摘が2回以上発生
-
-ルールを更新した場合、既存の画面を自動的に適合済みとみなさない。影響する画面と再検証の範囲を記録する。
-
-## 10. 運用の現状と導入順
-
-現行リポジトリには、TypeScript検査、アクセシビリティ静的検査、単体テスト、統合テスト、ビルドがある。
-一方、視覚回帰検査と画面証拠の標準保管は未整備である。
-
-公開カタログと無料証票の取得経路は、正本の公開境界に合わせて停止した。個別リンクのデータモデル・
-ルートは実装したが、B-01の手数料仕様が未確定のため、有料checkoutと決済確定を公開可能に戻してはならない。
-
-現行の`accessibility:check`は、`main`・`h1`・一部フォーム名、フォーカス、reduced motion、
-forced colorsの静的条件を確認する。色のコントラスト、実際の折返し、認可境界、状態表示の正しさ、
-審美性は確認しない。したがって、この検査の成功だけでデザイン合格とはしない。
-
-2026-08-13時点の導入順と残件は次のとおりとする。
-
-1. この変更記録テンプレートをIssue/PRへ適用する。
-2. 認証済みfixtureを用意し、Fan・Creator owner/staff・Opsの3幅・全状態の実画面確認を記録する。
-3. 既存のアクセシビリティ静的検査をデザインルールの機械証拠として参照する。
-4. デザイントークンと対象別共有部品を整理する。
-5. 代表画面のスクリーンショットを固定し、視覚回帰検査を自動化する。
-
-自動化が完了するまで、手動確認を省略する理由にはならない。
+| 指摘 | 対応 |
+| --- | --- |
+| 運用がデザインの説明と混在していた | 本書から視覚ルールを外し、変更記録、リスク分類、検証、レビュー、release gate、切り戻しだけを残した |
+| CSSを元にした合否判断ができなかった | import、token、selector、DOM、状態、viewport、preferenceごとのPASS条件を追加した |
+| 「確認する」だけで、誰が何を残すか不明だった | Owner、Implementer、Independent reviewer、証拠保存先、判定値、完了テンプレートを固定した |
+| 失敗時の対応がなかった | CSSのみ、DOM/状態契約、特殊効果緊急停止に分け、切り戻し単位と再検証を定義した |

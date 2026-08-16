@@ -1,7 +1,7 @@
 ---
 title: XXGGLL Public費用ページ仕様
-sidebar_label: 費用とお金の流れ
-sidebar_position: 6
+sidebar_label: Public｜費用
+sidebar_position: 22
 draft: true
 ---
 
@@ -62,7 +62,7 @@ Railway Pricingの「価値を一文で示す、選択肢をカードで比べ�
 - Fan支払額をCreatorへの預り金または固定割合の分配として説明しない。
 - Creator報酬は、決済手数料、返金・異議申立ての見込み、運営上のリスク留保を織り込み、取引ごとに算定する。
 - 通常の報酬は決済確定から90日後に精算可能とする。確認が必要な取引は最長180日まで保留できる。
-- Studioでは精算可能額、保留中、申請中を分ける。
+- Creator管理では精算可能額、保留中、申請中を分ける。
 - 初回の精算申請でStripeの本人確認・口座確認を行い、送金可否の確認前は送金しない。
 - 確定・支払済みのCreator報酬は、通常の購入者返金・チャージバックを理由にCreatorから相殺・回収しない。
 

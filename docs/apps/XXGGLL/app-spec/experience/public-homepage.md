@@ -1,7 +1,7 @@
 ---
 title: XXGGLL Publicトップページ仕様
-sidebar_label: Publicトップページ
-sidebar_position: 4
+sidebar_label: Public｜トップ
+sidebar_position: 20
 draft: true
 ---
 
@@ -197,7 +197,7 @@ Fan向けの汎用取得CTAは作らない。Creator向け操作の文言と遷�
 
 ## 8. ビジュアル表現
 
-色と光の方向は現行実装を維持し、[デザインルール](./design.md)の`D-20A`を正本とする。
+色と光の方向は現行実装を正本にせず、[デザイン仕様](./design.md)のD-02〜D-07と`signal-stage`の許可範囲、[CSS実装仕様](./css.md)のtokenに従う。
 
 - ほぼ黒の背景、白に近い本文、高彩度の黄緑を基本とする。
 - 青緑は奥行きの補助光だけに使う。
@@ -293,10 +293,10 @@ Docusaurus文書だけの変更では`npm run build`を実行しない。アプ�
 | 関係記録の定義と記録項目 | [XXGGLLコンセプト](../../concept/foundation/concept.md) |
 | Fanの個別リンク起点 | [一般ユーザーとの関係](../../concept/general/relationship-general.md) |
 | Creatorの匿名集計と現在保有者への限定開示 | [一般クリエイター](../../concept/general/creator-general.md)、[属性開示](../../concept/foundation/identity-disclosure.md) |
-| Public、Home、Studioの導線 | [UX](./ux.md) |
+| Public、Home、Creator管理の導線 | [UX](./ux.md) |
 | 機能要件とB-01 | [要件](../core/requirements.md) |
-| 色、用語、情報階層 | [デザインルール](./design.md) |
+| 色、用語、情報階層 | [デザイン仕様](./design.md)、[CSS実装仕様](./css.md) |
 | 限定リンク、認可、監査、カード情報 | [セキュリティ](../security/overview.md)、[コントロール](../core/controls.md) |
 | データ境界 | [データモデル](../core/data-model.md) |
-| 検証証拠 | [AIデザイン運用](./design-operations.md) |
+| 検証証拠 | [デザイン運用](./design-operations.md) |
 | 発行から振り返り・統計活用までの説明 | [XXGGLLの流れ](./public-flow.md) |

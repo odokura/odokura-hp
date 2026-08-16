@@ -16,7 +16,7 @@ draft: true
 XXGGLLのセキュリティは、次の五点を中核とする。
 
 1. 証票、台帳、同意、監査ログをサーバー側PostgreSQLの正本とし、クライアントの表示や入力を権限・金額・状態の根拠にしない。
-2. Public / Fan / StudioとOpsをOrigin、認証器、セッション、read modelで分離し、Opsでも利用者へのなりすましやDB直接接続を許可しない。
+2. Public / Fan / Creator管理とOpsをOrigin、認証器、セッション、read modelで分離し、Opsでも利用者へのなりすましやDB直接接続を許可しない。
 3. 本番PostgreSQLを公開せず、Railwayの同一project・environment内のprivate networkingだけでアプリケーションから接続する。
 4. カード、銀行口座、本人確認書類をXXGGLLへ取り込まず、Stripeのホスト型画面とトークン化APIへ委譲する。
 5. 予防だけで完了とせず、監視、追記専用監査、インシデント封じ込め、バックアップ、復旧訓練までを一つの管理サイクルにする。
@@ -94,7 +94,7 @@ Govern、Identify、Protect、Detect、Respond、Recoverを用いる。Webアプ
 
 ```mermaid
 flowchart TB
-  FC["Fan / Creator"] -->|"HTTPS + 通常セッション"| APP["Public / Fan / Studio Origin"]
+  FC["Fan / Creator"] -->|"HTTPS + 通常セッション"| APP["Public / Fan / Creator管理 Origin"]
   OP["運営担当者"] -->|"HTTPS + WebAuthn"| OPS["専用 Ops Origin"]
   APP --> WEB["Next.js アプリケーション"]
   OPS --> WEB
@@ -115,7 +115,7 @@ flowchart TB
 | アプリ → PostgreSQL | アプリ内の処理順、並行要求 | private URL、最小DBロール、制約、ロック、トランザクション |
 | Stripe → Webhook | 本文、順序、再送 | 署名、event ID一意性、対象イベント許可リスト、Stripe状態再照合 |
 | GitHub → Railway | branch、commit、依存関係、CI結果 | protected flow、検査、config as code、pre-deploy、healthcheck |
-| 人 → Railway | 共有名義、誤project・environment・service | 個人アカウント、MFA強制、最小ロール、対象明示、操作監査 |
+| 人 → Railway | 共有名義、誤project・environment・service | 個人アカウント、個人2FA（パスキー優先）、最小ロール、対象明示、操作監査 |
 
 ## 7. セキュリティ統制の構成
 
@@ -178,11 +178,11 @@ sequenceDiagram
 
 | 項目 | XXGGLLの必須構成 | 根拠・注意 |
 | --- | --- | --- |
-| プラン | 本番はPro以上 | workspaceの2FA強制とresource monitorを必須にする。Enterprise固有機能を前提にしない |
+| プラン | 本番はHobbyを継続する | Pro固有のworkspace 2FA enforcementは採用せず、本人の個人2FA、単一membership、off-device回復、月次権限reviewを補償統制として必須にする。Pro化を公開条件にしない |
 | project | 関連するWeb、Cron、PostgreSQLを同一projectに置く | private networkingとreference variableを使う |
 | environment | `production`と`dev`を分離する | [Railway environments](https://docs.railway.com/environments)は環境ごとにservice・変数・networkを分離する。XXGGLLでは`dev`をstaging相当の唯一の常設非本番環境とする |
 | PR環境 | baseを`dev`とし、本番sealed secret・本番データを複製しない | sealed variableはPR環境や複製環境へコピーされないため、専用の非本番値を設定する |
-| 公開面 | WebのPublic / Fan / Studio OriginとOps Originだけ | PostgreSQLと内部serviceへpublic domain・TCP proxyを付けない |
+| 公開面 | WebのPublic / Fan / Creator管理 OriginとOps Originだけ | PostgreSQLと内部serviceへpublic domain・TCP proxyを付けない |
 | DB接続 | private hostnameを参照する`DATABASE_URL`だけ | [Private Networking](https://docs.railway.com/private-networking)は同じproject・environment内だけで有効 |
 | 変数 | reference variableを優先し、秘密値はsealedにする | [Sealed variables](https://docs.railway.com/variables)はUI・API・CLIで値を再取得できず、複製もされない |
 | Deploy設定 | `railway.toml`を正本とし、Dashboard差分を定期確認する | build、pre-deploy、start、healthcheck、restartをレビュー可能にする |
@@ -194,16 +194,22 @@ sequenceDiagram
 `production`をEnterpriseのrestricted environmentにする場合は、[Environment RBAC](https://docs.railway.com/enterprise/environment-rbac)を有効にする。
 Enterpriseを採用しない間は、project memberを必要最小限にし、`dev`を通常調査先とすることで補う。
 
+### 9.1.1 Hobby継続の判断
+
+Railway公式の[2FA enforcement](https://docs.railway.com/access/two-factor-enforcement)はworkspace全体へ2FAを要求する機能であり、現行のHobby運用では採用しない。XXGGLLは、Pro化によってこの機能を得ることよりも、単独運用の実態に合わせてHobbyを継続することを選ぶ。この判断はworkspace全体の強制が不要になったことを意味せず、個人アカウントの2FAを必須にしたうえで、単一membership、分離認証器、off-device回復、月次の権限・session・token reviewを組み合わせる補償統制である。
+
+個人2FAはworkspace 2FA enforcementと同等ではないため、認証状態または回復手段を確認できない場合はRailway管理操作と本番公開を停止する。将来、運用者を増やす、workspace全体への強制が必要になる、またはHobbyの保持・監査制限を受容できなくなった場合は、Pro化を再評価し、Issueで仕様と公開gateを同時に更新する。
+
 ### 9.2 Railwayアカウントと権限
 
 - 共有アカウントを禁止し、[Project Members](https://docs.railway.com/projects/project-members)の人間用membershipは、運用者本人の
   Project Owner一つを原則とする。常設の追加Owner、Editor、Viewer、代替者を作らない。
-- workspaceで[2FA enforcement](https://docs.railway.com/access/two-factor-enforcement)を有効にし、運用者本人は
-  [Railway passkey](https://docs.railway.com/access/multi-factor-authentication)を第一選択にする。パスキー認証器は管理PCと分離した
-  スマートフォンまたはhardware authenticatorとする。
+- Railwayの個人アカウントで2FAを有効にし、[Railway passkey](https://docs.railway.com/access/multi-factor-authentication)を管理PCと分離した認証器へ少なくとも1つ登録する。TOTPだけの登録は本番公開条件を満たさない。
+  パスキー認証器はスマートフォンまたはhardware authenticatorとする。workspaceの[2FA enforcement](https://docs.railway.com/access/two-factor-enforcement)はHobbyでは利用しないため、個人2FAはworkspace全体への強制と同等ではない。
+- 個人2FAが無効、認証器を利用できない、またはoff-device回復手段を確認できない場合は、本番のRailway管理操作と公開判定をNo-Goにする。
 - 回復コードは管理PC、リポジトリ、Issue、チャットと分離し、本人だけが利用できる暗号化済みoff-device保管または封緘した紙で保管する。
   使用後は再発行する。管理PCだけを回復経路にしない。
-- API・project tokenは人の操作に流用せず、CIごとに最小scopeと失効手順を持たせる。2FA強制はtoken利用を代替保護しない。
+- API・project tokenは人の操作に流用せず、CIごとに最小scopeと失効手順を持たせる。個人2FAはtoken利用の保護を代替しない。
 - 管理PC、個人アカウント、パスキーの紛失・侵害時は、off-device回復手段またはprovider supportからsession、token、Ops credentialを失効し、
   安全な代替PCを再構築するまで通常の管理操作を再開しない。
 
@@ -241,8 +247,7 @@ mountを新しいvolumeへ差し替えるため、本番serviceを使う定期dr
   詳細は[Railway Metrics](https://docs.railway.com/observability/metrics)を前提に補完する。
 - runtime logは構造化し、level、event、request ID、environment、service、deployment IDだけを基本属性とする。
   秘密値、メール本文、メッセージ本文、Cookie、決済詳細を出さない。
-- [Railway Logs](https://docs.railway.com/observability/logs)と[Railway Audit Logs](https://docs.railway.com/enterprise/audit-logs)は
-  Proで30日保持のため、必要な長期証跡はアプリの追記専用監査ログまたはアクセス制限した外部保存へ残す。
+- [Railway Logs](https://docs.railway.com/observability/logs)と[Railway Audit Logs](https://docs.railway.com/enterprise/audit-logs)の保持期間に依存せず、必要な長期証跡はアプリの追記専用監査ログまたはアクセス制限した外部保存へ残す。
 
 ## 10. 責任分界
 
@@ -304,7 +309,7 @@ flowchart LR
 | G-01 仕様 | 影響する要件、脅威、コントロール、保持、rollbackをIssueに記録 | 正本URL、受け入れ条件 |
 | G-02 開発 | typecheck、unit、integration、build、依存関係・秘密値検査が成功 | commit SHA、CI run |
 | G-03 認可 | 正常、未認証、他人、role変更、並行失効、直接URLを確認 | 自動テスト、必要な手動確認 |
-| G-04 Railway | 対象environment / service、private DB、sealed secret、MFA、healthcheck、restart、通知を確認 | release checklist |
+| G-04 Railway | 対象environment / service、private DB、sealed secret、個人2FA、healthcheck、restart、通知を確認 | release checklist |
 | G-05 データ | migrationが前後version互換で、backupとrollback方針がある | migration check、復旧点 |
 | G-06 決済 | Stripe test、Webhook署名・重複・順序違い、台帳・返金・送金境界を確認 | test結果、機能gate |
 | G-07 Ops | 専用Origin、パスキー、再認証、失効、404、監査を確認 | Ops security checklist |
@@ -321,19 +326,19 @@ flowchart LR
 | Web deploy | `railway.toml`にpreflight、migration、`/api/health`、100秒timeout、`ON_FAILURE`最大10回、overlap 30秒、draining 30秒がある | releaseごとに実際のRailway適用値を照合する |
 | Cron deploy | 専用TOMLにmigration、月次schedule、`NEVER`がある | 失敗通知と冪等な手動再実行を確認する |
 | `dev` Ops初期設定 | `npm run ops:setup`がRailway本人確認後に固定`dev` targetへSSH委譲し、対象accountが一意でない場合は停止する | production targetへ流用せず、`dev`でbootstrap・recover・revokeを検証する |
-| Railway live設定 | plan、2FA enforcement、member、public TCP proxy、sealed variable、PITR、backup、monitorはrepositoryだけでは確認できない | 本番公開前にDashboardと監査証跡で確認する |
+| Railway live設定 | plan、個人2FA、member、public TCP proxy、sealed variable、PITR、backup、monitorはrepositoryだけでは確認できない | 本番公開前にDashboardと監査証跡で確認する。workspace 2FA enforcementを前提にしない |
 
 ### 14.2 `dev`実環境で確認できたこと
 
 | 対象 | 確認済み | 未確認 | 証跡 |
 | --- | --- | --- | --- |
-| overlap / draining | `dev` Webでcommit `f171120`のdeployment `063f0d79-86e6-487f-b591-db1452577d91`が成功し、`/api/health`が`200`、30秒後に旧deploymentが削除された | 長時間要求、SIGTERM受信log、overlap中の新旧traffic詳細 | [Issue #189](https://github.com/odokura/xxggll/issues/189)。未確認項目が残るためCloseしない |
+| overlap / draining | `dev` Webでoverlap 30秒、draining 30秒、長時間要求、新deploymentへの新規要求切替、draining超過時の切断、再deploy中の`/api/health`継続`200`を確認し、#189を完了した | Railway runtime logでSIGTERM受信時刻と終了までの経過時間を証跡化すること | [Issue #189](https://github.com/odokura/xxggll/issues/189)は完了。[Issue #195](https://github.com/odokura/xxggll/issues/195)でSIGTERM実測だけを継続する |
 
 ### 14.3 判断と未決定事項
 
 | 種別 | 判断・残件 | 公開への影響 |
 | --- | --- | --- |
-| 確定 | 本番RailwayはPro以上、2FA強制、個人passkey、private DB、sealed secretを基準とする | 構成できない場合は本番公開不可 |
+| 確定 | 本番RailwayはHobbyを継続し、個人2FA（パスキー優先）、単一membership、private DB、sealed secretを基準とする | 個人2FA、off-device回復、単一membership、月次reviewのいずれかを満たせない場合は本番公開不可。Pro化は前提にしない |
 | 確定 | Railway healthcheckはdeploy readinessだけに使い、外形監視を別に置く | 外形監視がなければ本番公開不可 |
 | 確定 | PITR、日次・週次・月次backup、四半期restore drillを行う | 最新drillが失敗中なら有料機能を停止 |
 | 未決定 | 外形監視service、application metrics、Railway webhookの通知先 | 選定・通知試験まで本番公開しない |

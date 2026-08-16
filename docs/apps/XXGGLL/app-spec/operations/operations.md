@@ -27,7 +27,7 @@ draft: true
 | 管理機能 | 実施者 | 必須の証跡・安全策 |
 | --- | --- | --- |
 | リスク受容、公開・停止・復旧、通知判断 | 単独運用者本人 | Issueまたはincidentへ理由、影響、期限を記録し、未充足機能はgateで停止する |
-| Railway、MFA、secret、backup、monitor | 単独運用者本人 | 個人passkey、固定target、通知、構成差分、restore drill |
+| Railway、個人2FA、secret、backup、monitor | 単独運用者本人 | 個人passkey、固定target、通知、構成差分、restore drill |
 | 仕様、実装、CI、migration、rollback | 単独運用者本人 | 正本URL、commit SHA、自動test、release記録 |
 | 返金、送金、強制失効、調査hold | 単独運用者本人 | Ops再認証、原子的な状態遷移、監査log |
 | 利用者受付、incident、外部連絡 | 単独運用者本人 | incident ID、時系列、通知判断。必要時だけ外部専門家へ相談する |
@@ -73,9 +73,10 @@ draft: true
 
 ### 4.2 アカウント・権限
 
-- 本番Railway workspaceはPro以上とし、workspaceの2FA enforcementを有効にする。本人はpasskeyを第一選択にする。
+- 本番Railway workspaceはHobbyを継続する。workspaceの2FA enforcementは前提にせず、本人の個人アカウントで2FAを有効にし、管理PCと分離したスマートフォンまたはhardware authenticatorのpasskeyを少なくとも1つ登録する。TOTPだけの登録は本番公開条件を満たさない。
+- 個人2FAはworkspace全体への強制と同等ではないため、本人だけのmembership、off-device回復手段、月次のmember・active session・token reviewを補償統制として必須にする。個人2FA、分離passkeyまたは回復手段を確認できない場合はRailway管理操作と本番公開を停止する。
 - 人間用membershipは本人のProject Owner一つを原則とし、追加Owner、Editor、Viewer、緊急代替者を常設しない。
-- 月次の統合reviewでproject member、workspace member、GitHub連携、token利用目的を照合し、本人以外の不要なmembershipがないことを確認する。
+- 月次の統合reviewでproject member、workspace member、Railway account securityのactive session、GitHub連携、token利用目的を照合し、本人以外の不要なmembership・session・tokenがないことを確認する。不要なsessionはrevokeし、秘密値やtoken値は証跡へ残さない。
 - 管理PC、個人アカウント、passkeyの紛失・侵害時は、off-device回復手段またはprovider supportからRailway session、GitHub access、
   API・project token、Ops credentialを失効または見直す。
 - Railway回復コードは管理PC、source、Issue、chatから分離し、本人だけが利用できる暗号化済みoff-device保管または封緘した紙で保管する。
@@ -125,7 +126,7 @@ draft: true
 
 ### 5.1 共通境界
 
-- 本番OpsはRailway上の専用HTTPS Originで運用し、Public / Fan / Studioの通常ログイン、一般navigation、DB公開接続から分離する。
+- 本番OpsはRailway上の専用HTTPS Originで運用し、Public / Fan / Creator管理の通常ログイン、一般navigation、DB公開接続から分離する。
   本番DB資格情報はRailwayのサーバー処理だけへ設定し、ブラウザ、ローカルPC、認証器、Issue、logへコピーしない。
 - Railwayのproject管理はOpsより上位の信頼境界である。共有アカウントを禁止し、個人を識別できる最小権限アカウントだけに、
   利用可能な最もphishing耐性の高いMFAを必須にする。member権限、variable、deploy、domain、DB公開設定の変更を監査する。
@@ -177,7 +178,7 @@ draft: true
 - 実行環境、commit SHA、結果、残る制約、rollback、Go / 条件付きGo / No-Goをrelease記録へ残す。
 - 実施者と承認者を分ける帳票は作らず、本人がCI結果とchecklistを確認して一回のGo / No-Goを記録する。
 
-### 6.2 `dev`切替検証（Issue #189）
+### 6.2 `dev`切替検証（Issue #189、SIGTERM実測はIssue #195）
 
 本番で同じ切替を試験する前に、`dev`のWeb serviceだけでoverlap・draining・終了境界を確認する。対象はIssueで指定した`dev`環境とし、Cloudflare、DNS、本番Railway、Cron serviceは変更しない。検証には専用test accountと読み取りまたは冪等なテスト要求だけを使い、commit SHA、旧・新deployment ID、開始・終了時刻、request ID、ログをrelease記録へ残す。Next.js / Node.jsへ独自のsignal handlerは追加せず、実行時の観測結果だけを記録する。
 
@@ -208,7 +209,7 @@ draft: true
    - rollback対象の正常deployment、監視、request IDを追跡できるログ、専用test accountのいずれかを準備できない。
    - Cloudflare、DNS、本番RailwayまたはCronを変更しないと試験できない。
 
-上記の中止条件に該当しないことを本人がrelease記録で確認して初めて、本番の通常deploy判断へ進む。Issue #189の実装完了だけでは、実環境での`dev`切替検証または本番試験完了を意味しない。
+上記の中止条件に該当しないことを本人がrelease記録で確認して初めて、本番の通常deploy判断へ進む。Issue #189の実装完了だけでは本番試験完了を意味しない。Dev切替のうちSIGTERM受信時刻と終了までの実測は、Issue #195が完了するまで未完了とする。
 
 ### 6.3 Deploy後
 
@@ -364,7 +365,7 @@ RTOは本人が通知を認知し、復旧操作を開始してからの技術�
 ## 13. 公開判定
 
 - [セキュリティ基本設計](../security/basic-design.md)のrelease gateと、[要件](../core/requirements.md)の該当機能gateを両方満たす。
-- 本番Pro plan、2FA enforcement、個人passkey、off-device回復、private DB、sealed secret、外形監視、通知、PITR、backupを確認する。
+- 本番Hobby plan、個人2FA、管理PCと分離したpasskey、本人一人のmembership、active session・token review、off-device回復、private DB、sealed secret、外形監視、通知、PITR、backupを確認する。workspaceの2FA enforcementは確認対象にせず、個人2FAによる補償統制の証跡を残す。
 - 未決定の外部backup保存先・保持期間・24時間外部受付と自動停止に依存する機能は、正本で指定した機能gateを閉じたままにする。
 - Go判断は、release記録、最新の月次統合review、最新restore drill、未解決SEV-1 / SEV-2、期限切れ脆弱性例外を確認して本人が行う。
 - 異常時は該当機能をサーバー側の機能gateから外し、画面とAPIを利用不可へ戻す。既存の決済・台帳・監査logを削除・上書きしない。

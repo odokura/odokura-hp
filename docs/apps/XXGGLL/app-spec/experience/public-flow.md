@@ -1,7 +1,7 @@
 ---
 title: XXGGLL Publicフローページ仕様
-sidebar_label: XXGGLLの流れ
-sidebar_position: 5
+sidebar_label: Public｜流れ
+sidebar_position: 21
 draft: true
 ---
 
@@ -133,7 +133,7 @@ Creatorは、Fanが同意した範囲から作られた匿名集計で、地域�
 - 各段階の主語を`Creator`または`Fan`で始め、システムやデータベースを主語にしない。
 - 各代表UIは実装予定の画面に似せたHTML/CSSの静的例とし、抽象図形だけで説明を終えない。
 - 一つの代表Fanと一つの代表Creatorの関係を追うが、固有名、顔写真、実在値、架空の推薦コメントを使わない。
-- 色は[デザインルール](./design.md)の`D-20A`を使い、黄緑の進行線で段階を接続する。
+- 色は[デザイン仕様](./design.md)の共通tokenと`signal-stage`の許可範囲に従い、黄緑の進行線で段階を接続する。進行線は装飾であり、番号・主語・見出しの代替にしない。
 - 1440pxでは説明と代表UIを左右交互に配置し、390px・320pxでは説明、代表UIの順に一列化する。
 - モバイルで横向きの巨大フロー図を縮小表示しない。320pxで横スクロールを発生させない。
 
@@ -204,10 +204,10 @@ Fan向けの汎用購入CTAは置かない。Creatorから受け取る個別リ�
 | 内容 | 正本 |
 | --- | --- |
 | Publicトップと共通ナビ | [Publicトップページ](./public-homepage.md) |
-| Public、Home、Studioの画面契約 | [UX](./ux.md) |
+| Public、Home、Creator管理の画面契約 | [UX](./ux.md) |
 | 発行とCreatorの責任 | [一般クリエイター](../../concept/general/creator-general.md) |
 | Fanの購入、支援、来歴 | [一般ユーザーとの関係](../../concept/general/relationship-general.md) |
 | 3種類のランクと昇格境界 | [ランク・発行上限](../../concept/foundation/ranks.md) |
 | 取得時情報、商品コード、集計 | [要件](../core/requirements.md)、[データモデル](../core/data-model.md)、[コントロール](../core/controls.md) |
 | 属性同意とCreator表示 | [属性開示](../../concept/foundation/identity-disclosure.md)、[セキュリティ](../security/overview.md) |
-| 色、進行線、代表UI | [デザインルール](./design.md) |
+| 色、進行線、代表UI | [デザイン仕様](./design.md)、[CSS実装仕様](./css.md) |

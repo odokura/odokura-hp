@@ -14,7 +14,7 @@ draft: true
 | カテゴリ | 最初に読むページ | ここで決めること |
 | --- | --- | --- |
 | 基本仕様 | [基本仕様の概要](./core/overview.md) | 機能要件、構成、データ、業務操作を確定できる条件 |
-| 画面・デザイン | [画面・デザインの概要](./experience/overview.md) | 画面責務、導線、表示、アクセシビリティ、デザイン検証 |
+| 画面仕様 | [画面仕様の概要](./experience/overview.md) | 画面責務、導線、個別画面、視覚結果、CSS実装契約、デザイン変更の検証 |
 | セキュリティ | [セキュリティ概要](./security/overview.md) | 脅威、認証、データ保護、取引安全、監査、基盤、公開gate |
 | 運用・法務 | [運用・法務の概要](./operations/overview.md) | Railway運用、release、監視、復旧、定期点検、精算条件 |
 
@@ -24,6 +24,8 @@ draft: true
 | --- | --- |
 | 新機能・API | [要件](./core/requirements.md) → [コントロール](./core/controls.md) → [データモデル](./core/data-model.md) → 関連するセキュリティ詳細 |
 | 画面・導線 | [画面台帳](./experience/screen-catalog.md) → [UX](./experience/ux.md) → 対象画面仕様 → [デザイン仕様](./experience/design.md) |
+| Creator管理・集計 | [Creator管理](./experience/creator-management/overview.md) → 対象画面仕様 → [画面台帳](./experience/screen-catalog.md) → [要件](./core/requirements.md) |
+| CSS・共通部品 | [デザイン仕様](./experience/design.md) → [CSS実装仕様](./experience/css.md) → [デザイン運用](./experience/design-operations.md) |
 | 認証・Ops・個人情報・決済 | [セキュリティ基本設計](./security/basic-design.md) → [セキュリティ概要](./security/overview.md)から対象詳細 → [コントロール](./core/controls.md) |
 | Railway・release・障害対応 | [セキュリティ基本設計](./security/basic-design.md) → [運用](./operations/operations.md) |
 | クリエイター報酬・出金 | [クリエイター精算](./operations/creator-settlement.md) → [取引・不正・利用者安全](./security/transactions-and-safety.md) → [コントロール](./core/controls.md) |

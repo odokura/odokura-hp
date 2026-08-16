@@ -1,3 +1,6 @@
+@import './xxggll-world-demo.css';
+@import './xxggll-world-sample-states.css';
+
 :root {
   /* ── Primary (accent blue) ── */
   --ifm-color-primary: #2563eb;

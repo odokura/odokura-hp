@@ -18,7 +18,8 @@ XXGGLLの全画面について、正規ルート、利用者、サーバー側re
 | 2 | 本台帳 | 正規ルート、画面責務、read model、画面状態、遷移、画面受け入れ条件 |
 | 3 | Public・設定等の個別画面仕様 | 一画面内の情報構造、文言、詳細な操作順 |
 | 4 | [UX](./ux.md) | シェル、利用者の中心導線、代表画面の意図 |
-| 5 | [デザイン仕様](./design.md) | 共通テンプレート、部品、視覚、レスポンシブ、アクセシビリティ |
+| 5 | [デザイン仕様](./design.md) | 共通部品の視覚結果、状態、画面モード、特殊効果の許可範囲 |
+| 6 | [CSS実装仕様](./css.md) | import順、DOM、selector、token、breakpoint、CSS移行、実装受け入れ条件 |
 
 下位文書が本台帳と異なるルート、遷移、権限応答を定義してはならない。個別画面仕様は本台帳の項目を複製せず、画面IDを参照して詳細だけを追加する。
 
@@ -29,7 +30,7 @@ XXGGLLの全画面について、正規ルート、利用者、サーバー側re
 - 各画面は表に指定したサーバー側read modelだけから表示を組み立てる。
 - ブラウザからaccount ID、Creator権限、adminフラグ、支払済みフラグを受け取り、本人性・認可・決済確定の根拠にしない。
 - read modelは画面に不要な列を返さず、`Cache-Control: no-store`が必要な認証・取引・Ops応答へ共有cacheを使わない。
-- 一覧と詳細、一般利用者とStudio、StudioとOpsは別read modelとする。クライアント側フィルタで権限境界を作らない。
+- 一覧と詳細、一般利用者とCreator管理、Creator管理とOpsは別read modelとする。クライアント側フィルタで権限境界を作らない。
 - endpoint名とschemaを実装Issueで確定する場合も、本台帳の主対象、返却可能項目、禁止項目、状態を変更してはならない。
 
 ### 2.2 認証・認可・不存在
@@ -98,25 +99,27 @@ Publicヘッダーに汎用Fan開始、公開カタログ、検索、Creator一�
 | `SC-F05` | `/fan/messages` | `RM-EntitledThreadList` | 有効利用権または本人の担当ケースだけを更新時刻降順で表示する | 利用権なしは対象を返さない。0件と取得失敗を分ける | 他人・失効後のthread不在、ページングを確認する |
 | `SC-F06` | `/fan/messages/[id]` | `RM-EntitledThread` | 本人が閲覧できる会話、状態、通報・送信可能性を表示する | 認可なしと不存在は同じ`404`。送信失敗時は未送信を維持し二重送信しない | 利用権再照合、通報・停止、本文のlog不出力を確認する |
 | `SC-F07` | `/fan/activity` | `RM-AccountActivity` | Creator別の活動記録、金額区分、返金・取消、利用区分を表示する | 0件は取得後に記録されることを示す。未確認額を推定しない | Homeと別read model、本人限定、金額区分を確認する |
-| `SC-F08` | `/fan/profile` | `RM-OwnProfile` | 完成ビューから編集し、自動開示と任意プロフィール共通公開を分けて保存する | 保有0件でも保存可、開示先0件を示す。更新失敗は全項目を変更前へ戻す | ownerへの開示、staff・前保有者への不開示、監査を確認する |
+| `SC-F08` | `/fan/profile` | `RM-OwnProfile` | 最初からプロフィールを編集でき、[プロフィール画面](./profile.md)の共有チェックだけは一操作で即時保存する | 保有0件でも保存可、開示先0件を示す。共有失敗は確定値へ戻し、項目失敗は入力を維持する | 新規だけ共有既定、既存未共有維持、ownerへの開示、staff・前保有者への不開示、競合・監査を確認する |
 | `SC-F09` | `/fan/settings` | `RM-AccountSettings` | 現在値、セキュリティ、共有状態、アカウント操作の入口を表示する | 取得失敗を空値にしない。未提供操作を完了可能に見せない | [設定画面](./settings.md)の受け入れ条件 |
 | `SC-F10` | `/fan/settings/security` | `RM-AccountSecurity` | パスワード、OAuth方法、通常sessionを確認・変更する | 再認証期限切れ、最後の認証方法解除、session競合、失敗を扱う | [設定画面](./settings.md)の受け入れ条件 |
 
-## 5. Studio画面
+## 5. Creator管理画面
 
-Studioの全read modelは、現在のaccount、Creator membership、permission、対象Creatorを要求ごとにサーバーで結合確認する。
+Creator管理の全read modelは、現在のaccount、Creator membership、permission、対象Creatorを要求ごとにサーバーで結合確認する。
+共通シェル、サイドメニュー、旧route移行は[Creator管理](./creator-management/overview.md)を正本とする。
 
 | ID | ルート | 主対象・read model | 正常表示と主操作 | 空・失敗・権限 | 受け入れ |
 | --- | --- | --- | --- | --- | --- |
 | `SC-S01` | `/studio` | `RM-ManagedCreatorList` | 一人だけなら概要へ移動し、複数なら一人を選ぶ | Creator未登録は開始状態、0件の権限失効はHomeへ戻す。対象外Creatorを示さない | 0・1・複数件とowner/staffを確認する |
-| `SC-S02` | `/studio/[creatorId]` | `RM-CreatorSummary` | 公開状態、要対応、最大4指標、各Studio機能への導線を表示する | 認可なしと不存在は同じ`404`。集計失敗を0件にしない | URLだけで認可せず、基準時刻を表示する |
-| `SC-S03` | `/studio/[creatorId]/offers` | `RM-IssuanceProgramList` | 一件一プログラムで状態、ランク、発行数、要対応を表示し、詳細または新規作成へ進む | 0件はownerまたは作成permissionを持つstaffにだけ発行開始を示し、作成権限のないstaffには説明だけを示す | permission別CTA、安定順序、ページングを確認する |
-| `SC-S04` | `/studio/[creatorId]/offers/new` | `RM-IssuanceDraftStart` | ownerまたは作成permissionを持つstaffが種類・ランクを選び、一度だけ下書きを作成する | 二重送信は同じ下書きを返す。権限失効、規約未同意、競合を分ける | 冪等な下書き作成と詳細への遷移を確認する |
-| `SC-S05` | `/studio/[creatorId]/offers/[id]` | `RM-IssuanceProgramDetail` | 状態、条件、発行数、公開、終了、owner限定の現在保有者を区画分けする | 他Creator・権限なしは同じ`404`。部分保存を禁止し、競合時は再取得する | owner/staff差、公開gate、限定開示監査を確認する |
-| `SC-S06` | `/studio/[creatorId]/audience` | `RM-CreatorAudience` | 人数、ランク、地域、支援額帯、継続期間、グッズ傾向を匿名集計で表示する | 母数不足は非表示または区分統合し、個人行を代替表示しない | 匿名化基準、基準時刻、CSV不在を確認する |
-| `SC-S07` | `/studio/[creatorId]/messages` | `RM-CreatorThreadList` | `messages_manage`範囲のスレッドとケースだけを表示する | permissionなしと不存在は同じ`404`。停止中は送信不可 | 対象Creator固定、通報・停止、本文log不出力を確認する |
-| `SC-S08` | `/studio/[creatorId]/revenue` | `RM-CreatorRevenue` | 取引区分、確認中、精算可能、申請中、送金済みを分け、可能額内で申請する | 0円、90日未経過、保留、本人確認未完了、申請競合、送金失敗を分ける | 金額整合性、再認証、Stripe hosted onboarding、冪等性を確認する |
-| `SC-S09` | `/studio/[creatorId]/settings` | `RM-CreatorSettings` | 公開プロフィール、規約同意、owner/staff権限を責務別に表示する | 秘密値・銀行・本人確認書類を返さず、権限変更競合は全体を再取得する | permission変更の即時反映、監査、自己ロックアウト防止を確認する |
+| `SC-S02` | `/studio/[creatorId]` | `RM-CreatorOverview` | 要対応最大3件、定義済み最大4指標、最近の発行を表示し、一つの業務へ進む | 認可なしと不存在は同じ`404`。区画失敗を0件・0円にしない | [概要画面](./creator-management/dashboard.md)の受け入れ条件 |
+| `SC-S03` | `/studio/[creatorId]/programs` | `RM-IssuanceProgramList` | 一件一行で状態、ランク、発行数、現在保有、要対応を表示する | 0件はownerにだけ発行開始を示し、staffには説明だけを示す | [発行プログラム](./creator-management/programs.md)の受け入れ条件 |
+| `SC-S04` | `/studio/[creatorId]/programs/new` | `RM-IssuanceDraftStart` | ownerが種類・ランク・上限・価格方式を確認し、一度だけ下書きを作成する | 二重送信は同じ下書きを返す。権限失効、規約未同意、競合を分ける | [発行プログラム](./creator-management/programs.md)の受け入れ条件 |
+| `SC-S05` | `/studio/[creatorId]/programs/[programId]` | `RM-IssuanceProgramDetail` | 状態、条件、発行数、公開、終了、owner限定の現在保有者を区画分けする | 他Creator・権限なしは同じ`404`。部分保存を禁止し、競合時は再取得する | [発行プログラム](./creator-management/programs.md)の受け入れ条件 |
+| `SC-S06` | `/studio/[creatorId]/audience` | `RM-CreatorAudienceV1` | 母集団、地域、ランク、確認済み支払額帯、保有期間、任意プロフィール、グッズ傾向を集計で表示する | 5人未満と補完推測可能なセルを抑制し、個人行・生件数・応援文で代替しない | [ファン全体の傾向](./creator-management/audience.md)の受け入れ条件 |
+| `SC-S07` | `/studio/[creatorId]/messages` | `RM-CreatorThreadList` | 別契約と安全要件を満たして機能gateが有効な場合だけ、`messages_manage`範囲のスレッドとケースを表示する。Audienceからは遷移させない | gate無効、permissionなし、不存在は同じ`404`。停止中は送信不可 | 対象Creator固定、Audience応答との分離、通報・停止、本文log不出力を確認する |
+| `SC-S08` | `/studio/[creatorId]/revenue` | `RM-CreatorRevenue` | 取引区分、確認中、精算可能、申請中、送金済みを分け、ownerだけが可能額内で申請する | 0円、90日未経過、保留、本人確認未完了、申請競合、送金失敗を分ける | [収益・精算](./creator-management/revenue.md)の受け入れ条件 |
+| `SC-S09` | `/studio/[creatorId]/settings` | `RM-CreatorSettings` | ownerが公開状態、規約同意、owner/staff権限を責務別に表示する | staff・他Creatorは同じ`404`。秘密値・銀行・本人確認書類を返さない | [設定・権限](./creator-management/settings.md)の受け入れ条件 |
+| `SC-S10` | `/studio/[creatorId]/offerings`、`/studio/[creatorId]/offerings/[offeringId]` | `RM-CreatorOfferingList`、`RM-CreatorOfferingDetail` | XXGGLLとは別契約の提供物を一件ずつ管理する | 発行プログラムとroute・型・一覧を共有しない。権限なしと不存在は同じ`404` | [別契約の提供物](./creator-management/offerings.md)の受け入れ条件 |
 
 ## 6. Ops画面
 
@@ -130,7 +133,7 @@ Ops画面は完全一致する専用Ops Originでだけ動作し、通常session
 | `SC-O04` | `/ops/users` | `T-Operation`、`RM-OpsUserSearch` | 最小識別情報で一人を検索・選択する | 0件・複数件・入力不正を分け、一覧に詳細個人情報を出さない | 検索rate limit、ページング、詳細閲覧前の最小項目を確認する |
 | `SC-O05` | `/ops/users/[id]` | `T-Operation`、`RM-OpsUserDetail` | Home、保有、プロフィール、設定、Creator管理対象を読取専用で確認する | 不存在・admin以外・session失効は同じ`404`。取得失敗時は更新操作を出さない | なりすまし・更新API不在、詳細閲覧監査を確認する |
 | `SC-O06` | `/ops/creators` | `T-Operation`、`RM-OpsCreatorSearch` | Creator名・ID・owner連絡先で一人を検索・選択する | 0件・複数件・入力不正を分け、一覧には比較用最小項目だけを出す | 検索rate limit、ページング、詳細閲覧前の最小項目を確認する |
-| `SC-O07` | `/ops/creators/[id]` | `T-Operation`、`RM-OpsCreatorDetail` | 概要、発行、匿名集計、収益、owner/staffを読取専用で確認する | 不存在・admin以外・session失効は同じ`404`。秘密値と個人Fan一覧を返さない | Creator session不発行、更新API不在、閲覧監査を確認する |
+| `SC-O07` | `/ops/creators/[id]` | `T-Operation`、`RM-OpsCreatorDetail` | 概要、発行、[Audience V1](./creator-management/audience.md)と同じ定義・抑制済み集計、収益、owner/staffを読取専用で確認する | 不存在・admin以外・session失効は同じ`404`。Ops用の非抑制セル、秘密値、個人Fan一覧を返さない | Creator session不発行、Audienceと同じsnapshot・抑制、更新API不在、閲覧監査を確認する |
 | `SC-O08` | `/ops/reviews` | `T-Operation`、`RM-OpsReviewCases` | 公開審査、通報、例外判断を一件ずつ開き、根拠と結果を記録する | 証拠不足、競合、対象状態変更、再認証期限切れでは確定しない | 一件処理、再認証、冪等性、監査を確認する |
 | `SC-O09` | `/ops/payouts` | `T-Operation`、`RM-OpsPaymentCases` | 精算、返金、送金を一件ずつ確認し、一操作だけ確定する | 外部反映待ち、金額不整合、重複event、競合、再認証期限切れを分ける | 台帳整合性、二重実行防止、再認証、監査を確認する |
 | `SC-O10` | `/ops/audit` | `T-Operation`、`RM-OpsAudit` | actor、対象、event、時刻、request IDで追記専用記録を検索・閲覧する | 0件と取得失敗を分け、本文・秘密値・認証情報を表示しない | 安定順序、期間上限、ページング、export不在を確認する |
@@ -155,7 +158,7 @@ ready / submitting
 - `expired`と`conflict`では古い金額・在庫・期限による再送を禁止する。
 - `B-01`が解除されるまで`ready`から`submitting`へ進めない。
 
-### 7.2 Studioの作成・公開・精算
+### 7.2 Creator管理の作成・公開・精算
 
 - 下書き作成は一回の操作から一件だけ作成し、通信再送時は既存の下書きへ戻す。
 - 公開・終了・権限変更・出金申請は、表示時のversionと確定時のversionが異なる場合に`conflict`とし、全体を再取得する。
