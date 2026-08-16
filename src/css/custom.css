@@ -122,6 +122,10 @@
 }
 
 /* ── Sidebar ── */
+.xxggll-compat-doc {
+  display: none;
+}
+
 .theme-doc-sidebar-item-link-level-1 > a {
   font-weight: 600;
 }

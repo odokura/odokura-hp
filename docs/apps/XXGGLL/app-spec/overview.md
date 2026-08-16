@@ -7,20 +7,39 @@ draft: true
 
 # XXGGLL アプリ仕様
 
-| ページ | 仕様範囲 |
+このページを仕様確認の入口とする。全ファイルを上から読むのではなく、変更目的に対応するカテゴリの概要から必要な正本へ進む。
+
+## メニュー
+
+| カテゴリ | 最初に読むページ | ここで決めること |
+| --- | --- | --- |
+| 基本仕様 | [基本仕様の概要](./core/overview.md) | 機能要件、構成、データ、業務操作を確定できる条件 |
+| 画面・デザイン | [画面・デザインの概要](./experience/overview.md) | 画面責務、導線、表示、アクセシビリティ、デザイン検証 |
+| セキュリティ | [セキュリティ概要](./security/overview.md) | 脅威、認証、データ保護、取引安全、監査、基盤、公開gate |
+| 運用・法務 | [運用・法務の概要](./operations/overview.md) | Railway運用、release、監視、復旧、定期点検、精算条件 |
+
+## 変更目的から読む
+
+| 変更目的 | 必ず確認する順序 |
 | --- | --- |
-| [UX](./ux.md) | 画面、ナビゲーション、閲覧境界、状態表示 |
-| [Publicトップページ](./public-homepage.md) | Publicトップが約束する利用後の結果、問い別ナビ、最初の画面、結果を裏づける関係記録、セキュリティ、受け入れ条件 |
-| [XXGGLLの流れ](./public-flow.md) | Publicで発行、購入、記録、商品コード登録、Fanの振り返り、ランク判定、Creatorの統計活用を一続きで示す画面仕様 |
-| [費用とお金の流れ](./public-costs.md) | Fanの支払内訳、Creator報酬、精算、更新停止、返金、B-01未解決中の公開境界 |
-| [デザイン仕様](./design.md) | 全画面共通の完成形、フレーム、レイアウト、情報部品、ビジュアル、状態、アクセシビリティ |
-| [設定画面](./settings.md) | アカウント設定の責務、情報構造、認証方法、セッション、プロフィール共有、アカウント閉鎖 |
-| [AIデザイン運用](./design-operations.md) | 変更分類、機械検証、実画面検証、レビュー、証拠、例外、リリースゲート |
-| [要件](./requirements.md) | 機能、非機能、権限、受け入れ条件 |
-| [アーキテクチャ](./architecture.md) | システム構成、モジュール、外部連携 |
-| [データモデル](./data-model.md) | エンティティ、DDL、整合性制約 |
-| [コントロール](./controls.md) | 決済、出金、認可、属性開示、状態遷移、監査の強制条件 |
-| [セキュリティ基本設計](./security-design.md) | 保護対象、脅威、信頼境界、Railway方針、責任分界、管理運用体制、復旧目標、リリースゲート |
-| [セキュリティ詳細](./security.md) | 認証認可、データ保護、決済、監査、保持の実装条件 |
-| [運用](./operations.md) | Railway、リリース、監視、インシデント、バックアップ・復旧、定期点検 |
-| [クリエイター精算](./legal-review-payment-secondary-termination.md) | 報酬、精算、返金、出金の条件 |
+| 新機能・API | [要件](./core/requirements.md) → [コントロール](./core/controls.md) → [データモデル](./core/data-model.md) → 関連するセキュリティ詳細 |
+| 画面・導線 | [画面台帳](./experience/screen-catalog.md) → [UX](./experience/ux.md) → 対象画面仕様 → [デザイン仕様](./experience/design.md) |
+| 認証・Ops・個人情報・決済 | [セキュリティ基本設計](./security/basic-design.md) → [セキュリティ概要](./security/overview.md)から対象詳細 → [コントロール](./core/controls.md) |
+| Railway・release・障害対応 | [セキュリティ基本設計](./security/basic-design.md) → [運用](./operations/operations.md) |
+| クリエイター報酬・出金 | [クリエイター精算](./operations/creator-settlement.md) → [取引・不正・利用者安全](./security/transactions-and-safety.md) → [コントロール](./core/controls.md) |
+
+## 正本の扱い
+
+- 同じ要件を複数文書へ複製しない。要約側から詳細の正本へリンクする。
+- 仕様が競合した場合は実装者が一方を選ばず、変更Issueで正本同士を整合させる。
+- Issueには変更対象の正本、制約、受け入れ条件、未実施の検証を記録する。
+- セキュリティ未決定事項は、安全側停止または機能gateを維持したまま判断する。
+
+## Review response
+
+| 項目 | 結果 |
+| --- | --- |
+| 対象 | app-spec直下の旧正本互換ページ15件、正本への移動リンク、自動生成sidebar、互換ページ専用CSS |
+| 判定 | No material findings |
+| 確認 | 互換ページは`draft: true`を維持し、`sidebar_class_name: xxggll-compat-doc`だけを指定する。Docusaurus 3.9.2のdevelopment server起動、client compile、生成sidebarへのclass付与を確認した |
+| 応答 | 同時指定できない`unlisted`を削除し、専用classを持つ互換項目だけをCSSで非表示にした。正本、公開ページ、他カテゴリのsidebar表示は変更しない |
