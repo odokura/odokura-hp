@@ -68,6 +68,9 @@ CSSの入口は `C:\dev\xxrrgg\app\globals.css` だけである。import順は�
 | component | `styles/components/ops.css` | Ops queue、case、user、creator surface |
 | component | `styles/components/public-entry.css` | Public guide、entry card |
 | component | `styles/components/responsive.css` | 共通componentの狭幅、reduced motion、forced colors |
+| component | `styles/components/interaction.css` | ボタン、リンク、ナビ、操作可能な面の反応 |
+| component | `styles/components/state.css` | 状態ランプ、入力focus、操作可能な表行、区画の信号線 |
+| component | `styles/components/effects.css` | 明示的なモザイクDOM、signal-stage / artifact-focusの走査線と効果keyframes |
 | public route | `styles/public/*.css` | Publicページの固有layoutと状態。共通primitiveを再定義しない |
 | public route | `styles/public/flow.css` | 七段階のフローと代表UI。料金、ガイド、記録のCSSを持たない |
 | private route | `styles/private/records.css` | Archive、issuance、history、transaction、detail data layout |
@@ -116,6 +119,11 @@ CSSの入口は `C:\dev\xxrrgg\app\globals.css` だけである。import順は�
   --xx-motion-fast: 120ms;
   --xx-motion-normal: 180ms;
   --xx-motion-signal: 420ms;
+  --xx-motion-sweep: 640ms;
+  --xx-motion-pulse: 1800ms;
+  --xx-ease-snap: cubic-bezier(.16, 1, .3, 1);
+  --xx-ease-track: cubic-bezier(.2, .8, .2, 1);
+  --xx-grid-unit: 4px;
 }
 ```
 
@@ -127,6 +135,7 @@ CSSの入口は `C:\dev\xxrrgg\app\globals.css` だけである。import順は�
 - 明転は背景色を別テーマへ切り替えず、境界、surface-raised、text、signalの差分で表現する。
 - glow、scanline、glitch、強いshadowはfoundationやbodyへ置かず、対象selectorへ明示的に書く。
 - 記録カードのランク色は`record.css`で直接hexを書かず、`--xx-rank-*`を参照する。
+- hoverは背景色の全面反転を標準にしない。操作対象の意味に対応した「線、区画、ランプ、走査」のどれか一つを返す。
 
 ## 5. selectorとDOM契約
 
@@ -168,6 +177,58 @@ CSSの入口は `C:\dev\xxrrgg\app\globals.css` だけである。import順は�
 `.xxggll-card`の背景、border、rank color、hover、pseudo elementは `components/record.css`だけが所有する。`private/detail.css`や`private/records.css`で同じselectorの見た目を上書きしない。
 
 状態は新しいclassを増やすのではなく、既存の`data-status`、`data-rank`、ARIA状態を使う。操作対象であることを表すhoverは `:hover` と `:focus-visible` の双方を確認し、装飾だけの要素を操作対象に見せない。
+
+### 5.3 要素別のインタラクション契約
+
+操作面の基本動作は`styles/components/interaction.css`、状態とデータ行は`state.css`、モザイクと特殊効果は`effects.css`が所有する。画面CSSが同じ部品のhoverを再定義する場合は、ここで定義した意味を変えない。
+
+| 要素 | 通常状態 | hover / focus-visible | active / disabled | 翻訳している事実 |
+| --- | --- | --- | --- | --- |
+| `button`, `.button`, `.world-button` | 1px境界、面はvariantのまま、文字位置は固定 | 4px程度の区画パターンが不均等に走査し、境界が信号色へ寄る。全体を白へ反転しない | activeは2px以内の横移動。disabledは走査を消し、現在状態と理由を残す | 操作を受信して準備状態を返す端末 |
+| `.context-links`、`.home-text-link`等のインラインリンク | 文字と短い追跡線 | 線が左から伸び、終端マーカーが現れる。文字だけを点滅させない | focusは同じ追跡線を維持 | 記録から次の区画へ移る経路 |
+| `.entity-list a`、`.attention-list a`、`.start-item`、`.landing-flow-item` | 行の境界だけ | 左端の2px信号線と行内の短い線が伸びる。行全体の面は最大6%だけ明転 | focus-withinでも同じ表示 | 集合の中から一件を選ぶこと |
+| `.nav-link` | 番号、ラベル、終端記号を同じ行に置く | 番号が信号色になり、左の縦線と下の経路線が伸び、終端記号が出る | `.active`は同じ線を常時表示。filled pillにはしない | 現在接続しているチャンネル |
+| `.xxggll-card` | ランク色の枠、番号、台帳、記録面 | 浮上・大きなshadowを使わず、内枠がずれ、記録面を一度だけ走査する | focusはhoverと同じ。reduced motionでは枠と色だけ | 一件の関係記録を照会すること |
+| `.status-badge[data-status]` | 状態名 + 形状付きランプ | `standard` / `operation`は静止。`signal-stage` / `artifact-focus`のactiveだけ小さく呼吸する | `pending`は横バー、`error`は四角、`closed`は中空。色だけに依存しない | 現在状態と確定度 |
+| `input`, `select`, `textarea` | 暗い入力面、1px境界 | `focus-visible`時だけ下端に信号線を引き、labelも信号色へ寄せる | invalid/disabledの文言・境界を残す | 境界を自分で編集していること |
+| `.data-table tr[data-interactive="true"]` | 行は明転しない | 先頭セルの縦線と行面だけを明転。`data-interactive`のない行は反応しない | focus-withinも同じ | 一覧の中で選択可能な記録だけを示す |
+| `.workspace-section-head` | 見出し下の罫線 | 見出し下の短い信号線を常時置き、hoverは発生させない | — | 区画の開始点 |
+
+ボタンの区画明転をDOMで表す場合は、次の契約を使う。セルの順序は固定し、乱数やJavaScriptで状態を作らない。CSSの`nth-child`による遅延で、面が一度に変わらない印象だけを作る。
+
+```html
+<a class="xx-mosaic" href="/fan/supports/example">
+  <span class="xx-mosaic__label">来歴を読む</span>
+  <span class="xx-mosaic__cells" aria-hidden="true">
+    <span class="xx-mosaic__cell"></span><span class="xx-mosaic__cell"></span>
+    <span class="xx-mosaic__cell"></span><span class="xx-mosaic__cell"></span>
+    <!-- 4 x 4 = 16セル。ラベルを隠す濃度にはしない。 -->
+  </span>
+</a>
+```
+
+AppShellのナビは次の子要素を持つ。番号はナビゲーションの読み順であり、装飾用の数字を別途追加しない。
+
+```html
+<a class="nav-link active" href="/home" aria-current="page">
+  <span class="nav-link-index" aria-hidden="true">01</span>
+  <span class="nav-link-label">ホーム</span>
+  <span class="nav-link-signal" aria-hidden="true">↗</span>
+</a>
+```
+
+### 5.4 特殊画面の効果境界
+
+AppShellはrootに`data-ui-mode`を付ける。値は`operation`、`signal-stage`、`artifact-focus`、`standard`のいずれかで、画面ごとに増やさない。
+
+| mode | 対象 | 使用できる効果 |
+| --- | --- | --- |
+| `standard` | Home、Creator、通常のPublic下層 | 部品の操作反応、境界、状態ランプ。常時animationなし |
+| `signal-stage` | `/`のhero | hero内の走査線と、操作時の短いscan pass。背景全体へglowを広げない |
+| `artifact-focus` | `/fan/supports/[certificateId]` | 詳細枠内の一回の走査。カード以外の画面を発光させない |
+| `operation` | Ops | 状態・罫線・focusだけ。scanline、glitch、glow、常時animationなし |
+
+`data-ui-mode`は効果を自動で全子要素へ配るフラグではない。`effects.css`の`record-preview`、`xxggll-detail-hero`のように対象selectorを限定して初めて効果が有効になる。
 
 ## 6. responsiveと状態
 
@@ -220,6 +281,8 @@ CSSの入口は `C:\dev\xxrrgg\app\globals.css` だけである。import順は�
 - 記録カードはArchiveとDetailで同じborder、radius、rank色、hover規則を使う。
 - 720px以下で主要gridとformが破綻せず、操作targetが44px以上である。
 - keyboard focus、reduced motion、forced colorsで内容と操作を維持する。
+- ボタン、リンク、ナビ、記録カード、状態、入力、表行が、上記の要素別インタラクション契約を満たす。
+- `standard`と`operation`では常時animationがなく、`signal-stage`と`artifact-focus`の走査線は宣言した対象の内側だけで一回動く。
 - `npm test`が全件成功し、CSS契約テストが古い明色Private frameを要求していない。
 
 ## 9. 変更時の判断
@@ -232,3 +295,13 @@ CSSの入口は `C:\dev\xxrrgg\app\globals.css` だけである。import順は�
 4. それでも不足する場合だけ新しいtokenまたはcomponentを追加し、この仕様書の責務表と受け入れ条件を同時に更新する。
 
 見た目を良くするために、別palette、別radius体系、別shell、別巨大ファイルを追加してはならない。
+
+## 10. Review response
+
+| 項目 | 結果 |
+| --- | --- |
+| レビュー範囲 | AppShellの`data-ui-mode`とナビDOM、`interaction.css`、`state.css`、`effects.css`、Publicトップ・認証画面・390px表示、reduced motion / forced colors |
+| 判定 | 修正後、No material findings |
+| P2 — active状態ランプの常時animation | 初回実装では`standard`と`operation`にもactiveランプの呼吸を許していた。デザイン仕様の「通常画面とOpsは常時animation 0」と競合するため、通常画面の静止した状態表示を損なう | `state.css`のanimationを`signal-stage`と`artifact-focus`だけへ限定し、`standard`と`operation`は静止状態に修正した。要素別契約と特殊画面境界も同じ内容へ更新した |
+
+独立レビューでは、通常・focus・disabled、ナビの狭幅、ボタンlabelの積層、特殊効果のselector境界、reduced motion、forced colors、500 physical lines未満の責務分割を確認した。修正後の`npm run typecheck`、`npm test`（199件成功）、`git diff --check`、ローカルブラウザのPublicトップ・認証画面・390px表示で、未解決のP0/P1はない。
