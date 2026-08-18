@@ -27,3 +27,16 @@
 - Do not overwrite or revert user-created unrelated changes.
 - Follow the `docusaurus` skill for Docusaurus-specific MDX, i18n, sidebar,
   protected-file, link, and validation rules.
+
+## GitHub CLI authentication diagnosis
+
+- Read GitHub repository, issue, and pull-request metadata through the connected
+  GitHub app first. Use local `gh` only when the connector does not cover the
+  required work, such as current-branch discovery or GitHub Actions log inspection.
+- Do not label a single `gh` REST/GraphQL failure as an authentication failure.
+  In the current runtime, verify authentication with `gh auth status`,
+  `gh api user --jq .login`, and `gh api graphql -f query='{ viewer { login } }'`.
+  If the two API checks succeed, report the failing command, endpoint, or GraphQL
+  field as a request-specific failure; do not suggest `gh auth login`, re-login,
+  or copying credentials. Do not use the GraphQL `viewerPermission` field as an
+  authentication check.
