@@ -5,7 +5,7 @@ title: Terms of Service
 
 # Hatsu-go Terms of Service
 
-Last updated: March 26, 2026
+Last updated: November 10, 2026
 
 ## 1. Scope
 
@@ -67,6 +67,8 @@ The App is provided as is and does not guarantee fitness for a particular purpos
 ## 9. Changes or Suspension of Service
 
 The operator may change, suspend, or terminate App features or content without prior notice.
+
+App updates may add, change, or remove encyclopedia content, including illustrations and words.
 
 ## 10. Changes to Terms
 
